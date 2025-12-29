@@ -1,0 +1,28 @@
+[
+  {
+    "id": 1,
+    "name": "La Bible Segond 21",
+    "author": "Alliance Biblique Universelle",
+    "description": "Version moderne et fidèle de la Bible en français contemporain",
+    "category": "bible",
+    "pdfUrl": "/books/bible-segond21.pdf",
+    "coverUrl": "/covers/bible-segond21.jpg",
+    "size": 5242880,
+    "totalPages": 1500,
+    "addedDate": "2024-01-01T00:00:00.000Z",
+    "price": 0
+  },
+  {
+    "id": 2,
+    "name": "Le Pèlerin",
+    "author": "John Bunyan",
+    "description": "Un classique de la littérature chrétienne racontant le voyage spirituel d'un pèlerin",
+    "category": "fiction",
+    "pdfUrl": "/books/le-pelerin.pdf",
+    "coverUrl": "/covers/le-pelerin.jpg",
+    "size": 2097152,
+    "totalPages": 350,
+    "addedDate": "2024-01-10T00:00:00.000Z",
+    "price": 0
+  }
+]
