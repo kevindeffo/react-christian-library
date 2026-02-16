@@ -2,6 +2,9 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getAllBooks } from '../services/bookService';
 import categories from '../config/categories.json';
+import { ArrowLeft, BookOpen, Loader2 } from 'lucide-react';
+import BookCard from '../components/shared/BookCard';
+import { cn } from '../lib/utils';
 
 function CatalogPage() {
   const [books, setBooks] = useState([]);
@@ -39,7 +42,6 @@ function CatalogPage() {
   };
 
   const handleOpenBook = (book) => {
-    // Navigate to book details page instead of reader directly
     navigate(`/book?id=${book.id}`);
   };
 
@@ -62,168 +64,92 @@ function CatalogPage() {
   };
 
   return (
-    <div className="min-vh-100" style={{ backgroundColor: '#f5f7fa' }}>
+    <div className="min-h-screen bg-gray-50">
       {/* Navbar */}
-      <nav className="navbar navbar-light bg-white shadow-sm">
-        <div className="container-fluid px-4">
-          <div className="d-flex align-items-center">
+      <nav className="bg-white border-b border-gray-100 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center h-16">
             <button
-              className="btn btn-link text-decoration-none me-3"
+              className="p-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors mr-3"
               onClick={() => navigate('/')}
-              style={{ color: '#5f6368' }}
+              aria-label="Retour"
             >
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
+              <ArrowLeft className="h-5 w-5" />
             </button>
-            <span className="navbar-brand mb-0 h4" style={{ color: '#5f6368' }}>Ma Bibliothèque</span>
+            <span className="text-lg font-semibold text-gray-700">Ma Bibliothèque</span>
           </div>
         </div>
       </nav>
 
       {/* Content */}
-      <div className="container py-5">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {loading ? (
-          <div className="text-center py-5">
-            <div className="spinner-border" style={{ color: '#9fa8da' }} role="status">
-              <span className="visually-hidden">Chargement...</span>
-            </div>
+          <div className="flex items-center justify-center py-20">
+            <Loader2 className="h-10 w-10 animate-spin text-primary" />
           </div>
         ) : books.length === 0 ? (
-          <div className="text-center py-5">
-            <svg width="100" height="100" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="mb-4">
-              <path d="M19 3H5C3.89543 3 3 3.89543 3 5V19C3 20.1046 3.89543 21 5 21H19C20.1046 21 21 20.1046 21 19V5C21 3.89543 20.1046 3 19 3Z" stroke="#9fa8da" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M7 7H17M7 12H17M7 17H13" stroke="#9fa8da" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-            <h5 className="mb-3" style={{ color: '#5f6368' }}>Votre bibliothèque est vide</h5>
-            <p className="text-muted mb-4">Ajoutez des livres depuis la page d'accueil</p>
+          <div className="flex flex-col items-center justify-center py-20">
+            <BookOpen className="h-20 w-20 text-gray-300 mb-6" />
+            <h5 className="text-lg font-medium text-gray-600 mb-2">Votre bibliothèque est vide</h5>
+            <p className="text-gray-400 mb-6">Ajoutez des livres depuis la page d&apos;accueil</p>
             <button
-              className="btn btn-lg px-5 py-3"
+              className="bg-primary text-white px-8 py-3 rounded-full text-lg font-medium hover:bg-primary-dark transition-colors"
               onClick={() => navigate('/')}
-              style={{
-                backgroundColor: '#9fa8da',
-                color: 'white',
-                borderRadius: '50px',
-                border: 'none'
-              }}
             >
               Ajouter un livre
             </button>
           </div>
         ) : (
           <>
-            {/* Filtre de catégories */}
-            <div className="mb-4">
-              <div className="d-flex justify-content-between align-items-center mb-3">
-                <h5 style={{ color: '#5f6368' }}>{filteredBooks.length} livre{filteredBooks.length > 1 ? 's' : ''}</h5>
-              </div>
-
-              <div className="d-flex flex-wrap gap-2">
-                <button
-                  className={`btn btn-sm ${selectedCategory === 'all' ? '' : 'btn-outline-secondary'}`}
-                  onClick={() => setSelectedCategory('all')}
-                  style={{
-                    backgroundColor: selectedCategory === 'all' ? '#9fa8da' : 'white',
-                    color: selectedCategory === 'all' ? 'white' : '#5f6368',
-                    borderRadius: '20px',
-                    border: selectedCategory === 'all' ? 'none' : '1px solid #e0e0e0',
-                    padding: '8px 16px'
-                  }}
-                >
-                  Tous ({books.length})
-                </button>
-                {categories.map(cat => {
-                  const count = books.filter(b => b.category === cat.id).length;
-                  return count > 0 ? (
-                    <button
-                      key={cat.id}
-                      className={`btn btn-sm ${selectedCategory === cat.id ? '' : 'btn-outline-secondary'}`}
-                      onClick={() => setSelectedCategory(cat.id)}
-                      style={{
-                        backgroundColor: selectedCategory === cat.id ? cat.color : 'white',
-                        color: selectedCategory === cat.id ? 'white' : '#5f6368',
-                        borderRadius: '20px',
-                        border: selectedCategory === cat.id ? 'none' : '1px solid #e0e0e0',
-                        padding: '8px 16px'
-                      }}
-                    >
-                      {cat.name} ({count})
-                    </button>
-                  ) : null;
-                })}
-              </div>
+            {/* Book count header */}
+            <div className="flex justify-between items-center mb-4">
+              <h5 className="text-gray-600 font-medium">
+                {filteredBooks.length} livre{filteredBooks.length > 1 ? 's' : ''}
+              </h5>
             </div>
 
-            <div className="row g-4">
-              {filteredBooks.map((book) => (
-                <div key={book.id} className="col-12 col-sm-6 col-md-4 col-lg-3">
-                  <div
-                    className="card border-0 shadow-sm h-100"
-                    style={{
-                      borderRadius: '15px',
-                      cursor: 'pointer',
-                      transition: 'all 0.3s ease'
-                    }}
-                    onClick={() => handleOpenBook(book)}
+            {/* Category filter pills */}
+            <div className="flex flex-wrap gap-2 mb-6">
+              <button
+                className={cn(
+                  'px-4 py-2 rounded-full text-sm font-medium transition-colors',
+                  selectedCategory === 'all'
+                    ? 'bg-primary text-white'
+                    : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
+                )}
+                onClick={() => setSelectedCategory('all')}
+              >
+                Tous ({books.length})
+              </button>
+              {categories.map(cat => {
+                const count = books.filter(b => b.category === cat.id).length;
+                return count > 0 ? (
+                  <button
+                    key={cat.id}
+                    className={cn(
+                      'px-4 py-2 rounded-full text-sm font-medium transition-colors',
+                      selectedCategory === cat.id
+                        ? 'text-white'
+                        : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
+                    )}
+                    style={selectedCategory === cat.id ? { backgroundColor: cat.color } : undefined}
+                    onClick={() => setSelectedCategory(cat.id)}
                   >
-                    <div className="card-body p-4">
-                      <div className="mb-3">
-                        <svg width="50" height="50" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="mb-3">
-                          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" stroke="#9fa8da" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                          <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" stroke="#9fa8da" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                        </svg>
-                      </div>
+                    {cat.name} ({count})
+                  </button>
+                ) : null;
+              })}
+            </div>
 
-                      {/* Badge de catégorie */}
-                      <div className="mb-2">
-                        <span
-                          className="badge"
-                          style={{
-                            backgroundColor: getCategoryInfo(book.category).color,
-                            color: 'white',
-                            fontSize: '0.7rem',
-                            padding: '4px 10px',
-                            borderRadius: '12px'
-                          }}
-                        >
-                          {getCategoryInfo(book.category).name}
-                        </span>
-                      </div>
-
-                      <h6 className="card-title mb-2" style={{
-                        color: '#5f6368',
-                        fontSize: '0.95rem',
-                        fontWeight: '500',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        display: '-webkit-box',
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: 'vertical'
-                      }}>
-                        {book.name}
-                      </h6>
-
-                      <div className="mt-3">
-                        <p className="text-muted small mb-1">
-                          <strong>Taille:</strong> {formatSize(book.size)}
-                        </p>
-                        <p className="text-muted small mb-1">
-                          <strong>Ajouté:</strong> {formatDate(book.addedDate)}
-                        </p>
-                        {book.lastRead && (
-                          <p className="text-muted small mb-0">
-                            <strong>Dernière lecture:</strong> {formatDate(book.lastRead)}
-                          </p>
-                        )}
-                        {book.currentPage && book.currentPage > 1 && (
-                          <p className="text-muted small mb-0">
-                            <strong>Page:</strong> {book.currentPage}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
+            {/* Book grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              {filteredBooks.map((book) => (
+                <BookCard
+                  key={book.id}
+                  book={book}
+                  onOpen={handleOpenBook}
+                  showActions={false}
+                />
               ))}
             </div>
           </>

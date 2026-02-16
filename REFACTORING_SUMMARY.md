@@ -27,7 +27,7 @@ src/
 ```javascript
 // Hardcodé dans libraryService.js
 export const CATEGORIES = [
-  { id: 'bible', name: '...', ... }
+  { id: 'fiction', name: '...', ... }
 ];
 ```
 
@@ -36,8 +36,8 @@ export const CATEGORIES = [
 // config/categories.json
 [
   {
-    "id": "bible",
-    "name": "Bible & Commentaires",
+    "id": "fiction",
+    "name": "Roman & Fiction",
     "color": "#8b5cf6",
     "icon": "📖",
     "description": "..."
@@ -178,7 +178,7 @@ const {
 #### **CategoryBadge**
 ```jsx
 <CategoryBadge
-  categoryId="bible"
+  categoryId="fiction"
   showIcon={true}
   showName={true}
 />

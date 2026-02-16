@@ -1,10 +1,6 @@
 import Badge from '../ui/Badge';
 import { useCategories } from '../../hooks/useCategories';
 
-/**
- * Category Badge component
- * Displays a category badge with icon, name and color
- */
 const CategoryBadge = ({
   categoryId,
   showIcon = true,
@@ -16,13 +12,20 @@ const CategoryBadge = ({
   const { getCategoryById } = useCategories();
   const category = getCategoryById(categoryId);
 
-  if (!category) return null;
+  if (!category) {
+    return (
+      <Badge variant="custom" size={size} className={className} style={{ backgroundColor: '#94a3b8', color: 'white' }} {...rest}>
+        Inconnu
+      </Badge>
+    );
+  }
 
   return (
     <Badge
-      color={category.color}
+      variant="custom"
       size={size}
       className={className}
+      style={{ backgroundColor: category.color, color: 'white' }}
       {...rest}
     >
       {showIcon && <span>{category.icon}</span>}
@@ -31,6 +34,5 @@ const CategoryBadge = ({
     </Badge>
   );
 };
-
 
 export default CategoryBadge;

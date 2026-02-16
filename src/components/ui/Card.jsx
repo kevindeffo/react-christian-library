@@ -1,68 +1,96 @@
-import { borderRadius, shadows } from '../../config/theme';
+import { forwardRef } from 'react';
+import PropTypes from 'prop-types';
+import { cn } from '../../lib/utils';
 
-/**
- * Reusable Card component
- * @param {object} props - Component props
- */
-const Card = ({
-  children,
-  className = '',
-  style = {},
-  shadow = 'sm',
-  padding = 'md',
-  hoverable = false,
-  onClick = null,
-  ...rest
-}) => {
-  const paddingValues = {
-    none: '0',
-    sm: '12px',
-    md: '16px',
-    lg: '24px',
-    xl: '32px',
-  };
+const Card = forwardRef(
+  ({ children, className, hoverable = false, onClick, ...rest }, ref) => {
+    return (
+      <div
+        ref={ref}
+        className={cn(
+          'rounded-xl border border-gray-100 bg-white shadow-card',
+          hoverable &&
+            'hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-200 cursor-pointer',
+          onClick && !hoverable && 'cursor-pointer',
+          className
+        )}
+        onClick={onClick}
+        {...rest}
+      >
+        {children}
+      </div>
+    );
+  }
+);
 
-  const cardStyle = {
-    backgroundColor: 'white',
-    borderRadius: borderRadius.lg,
-    border: 'none',
-    boxShadow: shadows[shadow],
-    padding: paddingValues[padding],
-    transition: 'all 0.3s ease',
-    cursor: hoverable || onClick ? 'pointer' : 'default',
-    ...style,
-  };
+Card.displayName = 'Card';
 
-  const hoverStyle = hoverable || onClick ? {
-    ':hover': {
-      transform: 'translateY(-2px)',
-      boxShadow: shadows.lg,
-    }
-  } : {};
+Card.propTypes = {
+  children: PropTypes.node,
+  className: PropTypes.string,
+  hoverable: PropTypes.bool,
+  onClick: PropTypes.func,
+};
 
+const CardHeader = ({ children, className, ...rest }) => {
   return (
-    <div
-      className={`card ${className}`}
-      style={cardStyle}
-      onClick={onClick}
-      onMouseEnter={(e) => {
-        if (hoverable || onClick) {
-          e.currentTarget.style.transform = 'translateY(-2px)';
-          e.currentTarget.style.boxShadow = shadows.lg;
-        }
-      }}
-      onMouseLeave={(e) => {
-        if (hoverable || onClick) {
-          e.currentTarget.style.transform = 'translateY(0)';
-          e.currentTarget.style.boxShadow = shadows[shadow];
-        }
-      }}
-      {...rest}
-    >
+    <div className={cn('px-6 pt-6 pb-2', className)} {...rest}>
       {children}
     </div>
   );
 };
 
+CardHeader.displayName = 'CardHeader';
 
+CardHeader.propTypes = {
+  children: PropTypes.node,
+  className: PropTypes.string,
+};
+
+const CardTitle = ({ children, className, ...rest }) => {
+  return (
+    <h3 className={cn('text-lg font-semibold text-gray-900', className)} {...rest}>
+      {children}
+    </h3>
+  );
+};
+
+CardTitle.displayName = 'CardTitle';
+
+CardTitle.propTypes = {
+  children: PropTypes.node,
+  className: PropTypes.string,
+};
+
+const CardContent = ({ children, className, ...rest }) => {
+  return (
+    <div className={cn('px-6 py-4', className)} {...rest}>
+      {children}
+    </div>
+  );
+};
+
+CardContent.displayName = 'CardContent';
+
+CardContent.propTypes = {
+  children: PropTypes.node,
+  className: PropTypes.string,
+};
+
+const CardFooter = ({ children, className, ...rest }) => {
+  return (
+    <div className={cn('px-6 pb-6 pt-2', className)} {...rest}>
+      {children}
+    </div>
+  );
+};
+
+CardFooter.displayName = 'CardFooter';
+
+CardFooter.propTypes = {
+  children: PropTypes.node,
+  className: PropTypes.string,
+};
+
+export { Card, CardHeader, CardTitle, CardContent, CardFooter };
 export default Card;

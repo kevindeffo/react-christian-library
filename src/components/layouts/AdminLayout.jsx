@@ -1,132 +1,143 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { LayoutDashboard, BookOpen, PlusCircle, Tags, Home, Menu, X } from 'lucide-react';
+import { cn } from '../../lib/utils';
+
+const menuItems = [
+  { path: '/admin/dashboard', icon: LayoutDashboard, label: 'Tableau de bord' },
+  { path: '/admin/books', icon: BookOpen, label: 'Gestion des livres' },
+  { path: '/admin/add-book', icon: PlusCircle, label: 'Ajouter un livre' },
+  { path: '/admin/categories', icon: Tags, label: 'Catégories' },
+];
 
 function AdminLayout({ children }) {
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
-  const menuItems = [
-    {
-      path: '/admin/dashboard',
-      icon: '📊',
-      label: 'Tableau de bord',
-      name: 'dashboard'
-    },
-    {
-      path: '/admin/books',
-      icon: '📚',
-      label: 'Gestion des livres',
-      name: 'books'
-    },
-    {
-      path: '/admin/add-book',
-      icon: '➕',
-      label: 'Ajouter un livre',
-      name: 'add-book'
-    },
-    {
-      path: '/admin/categories',
-      icon: '🏷️',
-      label: 'Catégories',
-      name: 'categories'
-    }
-  ];
-
   const isActive = (path) => location.pathname === path;
 
-  return (
-    <div className="d-flex min-vh-100" style={{ backgroundColor: '#f8f9fa' }}>
-      {/* Sidebar */}
-      <div
-        className="bg-white shadow-sm d-flex flex-column"
-        style={{
-          width: isSidebarCollapsed ? '80px' : '280px',
-          transition: 'width 0.3s ease',
-          position: 'fixed',
-          height: '100vh',
-          overflowY: 'auto',
-          zIndex: 1000
-        }}
-      >
-        {/* Header */}
-        <div className="p-4 border-bottom">
-          <div className="d-flex align-items-center justify-content-between">
-            {!isSidebarCollapsed && (
-              <div className="d-flex align-items-center">
-                <span style={{ fontSize: '1.5rem', marginRight: '8px' }}>📖</span>
-                <span style={{ fontWeight: '600', color: '#8b5cf6', fontSize: '1.1rem' }}>
-                  Admin
-                </span>
-              </div>
-            )}
-            <button
-              className="btn btn-sm btn-link text-decoration-none p-0"
-              onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-              style={{ color: '#5f6368' }}
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M3 12h18M3 6h18M3 18h18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-              </svg>
-            </button>
-          </div>
-        </div>
+  const handleNav = (path) => {
+    navigate(path);
+    setMobileOpen(false);
+  };
 
-        {/* Menu Items */}
-        <nav className="flex-grow-1 py-3">
-          {menuItems.map((item) => (
-            <button
-              key={item.name}
-              onClick={() => navigate(item.path)}
-              className={`w-100 btn text-start d-flex align-items-center border-0 ${
-                isActive(item.path) ? '' : ''
-              }`}
-              style={{
-                padding: isSidebarCollapsed ? '16px 28px' : '16px 24px',
-                backgroundColor: isActive(item.path) ? '#f3f4f6' : 'transparent',
-                color: isActive(item.path) ? '#8b5cf6' : '#5f6368',
-                borderLeft: isActive(item.path) ? '4px solid #8b5cf6' : '4px solid transparent',
-                fontWeight: isActive(item.path) ? '600' : '400',
-                transition: 'all 0.2s ease'
-              }}
-            >
-              <span style={{ fontSize: '1.3rem' }}>{item.icon}</span>
-              {!isSidebarCollapsed && (
-                <span className="ms-3">{item.label}</span>
-              )}
-            </button>
-          ))}
-        </nav>
-
-        {/* Bottom Section */}
-        <div className="border-top p-3">
+  const SidebarContent = ({ collapsed }) => (
+    <>
+      {/* Header */}
+      <div className="p-4 border-b border-gray-200">
+        <div className="flex items-center justify-between">
+          {!collapsed && (
+            <div className="flex items-center gap-2">
+              <BookOpen className="h-6 w-6 text-primary" />
+              <span className="font-bold text-primary text-lg">Admin</span>
+            </div>
+          )}
+          {/* Desktop toggle */}
           <button
-            onClick={() => navigate('/')}
-            className="w-100 btn text-start d-flex align-items-center border-0"
-            style={{
-              padding: isSidebarCollapsed ? '12px 24px' : '12px 16px',
-              color: '#5f6368',
-              transition: 'all 0.2s ease'
-            }}
+            className="hidden lg:flex p-1.5 rounded-lg text-gray-500 hover:bg-gray-100 transition-colors"
+            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+            aria-label="Basculer la barre latérale"
           >
-            <span style={{ fontSize: '1.3rem' }}>🏠</span>
-            {!isSidebarCollapsed && (
-              <span className="ms-3">Retour au site</span>
-            )}
+            <Menu className="h-5 w-5" />
+          </button>
+          {/* Mobile close */}
+          <button
+            className="lg:hidden p-1.5 rounded-lg text-gray-500 hover:bg-gray-100 transition-colors"
+            onClick={() => setMobileOpen(false)}
+            aria-label="Fermer le menu"
+          >
+            <X className="h-5 w-5" />
           </button>
         </div>
       </div>
 
-      {/* Main Content */}
-      <div
-        style={{
-          marginLeft: isSidebarCollapsed ? '80px' : '280px',
-          width: `calc(100% - ${isSidebarCollapsed ? '80px' : '280px'})`,
-          transition: 'margin-left 0.3s ease, width 0.3s ease'
-        }}
+      {/* Nav */}
+      <nav className="flex-1 py-3" aria-label="Menu administration">
+        {menuItems.map((item) => {
+          const Icon = item.icon;
+          return (
+            <button
+              key={item.path}
+              onClick={() => handleNav(item.path)}
+              className={cn(
+                'w-full flex items-center gap-3 px-4 py-3 text-left transition-colors border-l-4',
+                isActive(item.path)
+                  ? 'bg-primary/10 text-primary font-semibold border-primary'
+                  : 'text-gray-600 hover:bg-gray-50 border-transparent'
+              )}
+            >
+              <Icon className="h-5 w-5 shrink-0" />
+              {!collapsed && <span>{item.label}</span>}
+            </button>
+          );
+        })}
+      </nav>
+
+      {/* Bottom */}
+      <div className="border-t border-gray-200 p-3">
+        <button
+          onClick={() => handleNav('/')}
+          className="w-full flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors"
+        >
+          <Home className="h-5 w-5 shrink-0" />
+          {!collapsed && <span>Retour au site</span>}
+        </button>
+      </div>
+    </>
+  );
+
+  return (
+    <div className="flex min-h-screen bg-gray-50">
+      {/* Mobile hamburger */}
+      <button
+        className="lg:hidden fixed top-4 left-4 z-30 p-2 bg-white rounded-lg shadow-md text-gray-600 hover:bg-gray-50"
+        onClick={() => setMobileOpen(true)}
+        aria-label="Ouvrir le menu"
+      >
+        <Menu className="h-5 w-5" />
+      </button>
+
+      {/* Mobile overlay */}
+      {mobileOpen && (
+        <div
+          className="lg:hidden fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
+          onClick={() => setMobileOpen(false)}
+        />
+      )}
+
+      {/* Mobile sidebar */}
+      <aside
+        className={cn(
+          'lg:hidden fixed left-0 top-0 h-full w-72 bg-white z-50 flex flex-col transition-transform duration-300',
+          mobileOpen ? 'translate-x-0' : '-translate-x-full'
+        )}
+      >
+        <SidebarContent collapsed={false} />
+      </aside>
+
+      {/* Desktop sidebar */}
+      <aside
+        className={cn(
+          'hidden lg:flex flex-col fixed left-0 top-0 h-screen bg-white border-r border-gray-200 transition-all duration-300 z-20',
+          sidebarCollapsed ? 'w-20' : 'w-70'
+        )}
+      >
+        <SidebarContent collapsed={sidebarCollapsed} />
+      </aside>
+
+      {/* Main content */}
+      <main
+        className={cn(
+          'flex-1 transition-all duration-300',
+          'lg:ml-70',
+          sidebarCollapsed && 'lg:ml-20',
+          'pt-14 lg:pt-0'
+        )}
       >
         {children}
-      </div>
+      </main>
     </div>
   );
 }

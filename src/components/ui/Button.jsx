@@ -1,110 +1,101 @@
-import { colors, borderRadius } from '../../config/theme';
+import { forwardRef } from 'react';
+import PropTypes from 'prop-types';
+import { Slot } from '@radix-ui/react-slot';
+import { cva } from 'class-variance-authority';
+import { Loader2 } from 'lucide-react';
+import { cn } from '../../lib/utils';
 
-/**
- * Reusable Button component
- * @param {object} props - Component props
- */
-const Button = ({
-  children,
-  variant = 'primary',
-  size = 'md',
-  fullWidth = false,
-  disabled = false,
-  loading = false,
-  icon = null,
-  onClick,
-  type = 'button',
-  className = '',
-  style = {},
-  ...rest
-}) => {
-  const variants = {
-    primary: {
-      backgroundColor: colors.primary,
-      color: 'white',
-      border: 'none',
+const buttonVariants = cva(
+  'inline-flex items-center justify-center gap-2 font-medium rounded-xl transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
+  {
+    variants: {
+      variant: {
+        primary: 'bg-primary text-white hover:bg-primary-dark',
+        secondary: 'bg-secondary text-white hover:bg-secondary/90',
+        success: 'bg-success text-white hover:bg-success/90',
+        danger: 'bg-danger text-white hover:bg-danger/90',
+        outline:
+          'border border-primary text-primary bg-transparent hover:bg-primary/10',
+        ghost: 'bg-gray-100 text-gray-700 hover:bg-gray-200',
+        none: '',
+      },
+      size: {
+        sm: 'h-9 px-3 text-sm',
+        md: 'h-10 px-5',
+        lg: 'h-12 px-8 text-lg',
+      },
     },
-    secondary: {
-      backgroundColor: colors.secondary,
-      color: 'white',
-      border: 'none',
+    defaultVariants: {
+      variant: 'primary',
+      size: 'md',
     },
-    success: {
-      backgroundColor: colors.success,
-      color: 'white',
-      border: 'none',
-    },
-    danger: {
-      backgroundColor: colors.danger,
-      color: 'white',
-      border: 'none',
-    },
-    outline: {
-      backgroundColor: 'transparent',
-      color: colors.primary,
-      border: `1px solid ${colors.primary}`,
-    },
-    ghost: {
-      backgroundColor: colors.backgroundDark,
-      color: colors.text,
-      border: 'none',
-    },
-  };
+  }
+);
 
-  const sizes = {
-    sm: {
-      padding: '8px 16px',
-      fontSize: '0.875rem',
+const Button = forwardRef(
+  (
+    {
+      children,
+      variant = 'primary',
+      size = 'md',
+      fullWidth = false,
+      disabled = false,
+      loading = false,
+      className,
+      asChild = false,
+      type = 'button',
+      ...rest
     },
-    md: {
-      padding: '12px 24px',
-      fontSize: '1rem',
-    },
-    lg: {
-      padding: '16px 32px',
-      fontSize: '1.125rem',
-    },
-  };
+    ref
+  ) => {
+    const Comp = asChild ? Slot : 'button';
 
-  const buttonStyle = {
-    ...variants[variant],
-    ...sizes[size],
-    borderRadius: borderRadius.xl,
-    cursor: disabled || loading ? 'not-allowed' : 'pointer',
-    opacity: disabled || loading ? 0.6 : 1,
-    transition: 'all 0.2s ease',
-    display: 'inline-flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: '8px',
-    fontWeight: '500',
-    width: fullWidth ? '100%' : 'auto',
-    ...style,
-  };
+    return (
+      <Comp
+        ref={ref}
+        type={asChild ? undefined : type}
+        className={cn(
+          buttonVariants({ variant, size }),
+          fullWidth && 'w-full',
+          className
+        )}
+        disabled={disabled || loading}
+        {...rest}
+      >
+        {loading ? (
+          <>
+            <Loader2 className="h-4 w-4 animate-spin" />
+            <span>Chargement...</span>
+          </>
+        ) : (
+          children
+        )}
+      </Comp>
+    );
+  }
+);
 
-  return (
-    <button
-      type={type}
-      className={`btn ${className}`}
-      style={buttonStyle}
-      onClick={onClick}
-      disabled={disabled || loading}
-      {...rest}
-    >
-      {loading ? (
-        <>
-          <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-          <span>Chargement...</span>
-        </>
-      ) : (
-        <>
-          {icon && <span>{icon}</span>}
-          {children}
-        </>
-      )}
-    </button>
-  );
+Button.displayName = 'Button';
+
+Button.propTypes = {
+  children: PropTypes.node,
+  variant: PropTypes.oneOf([
+    'primary',
+    'secondary',
+    'success',
+    'danger',
+    'outline',
+    'ghost',
+    'none',
+  ]),
+  size: PropTypes.oneOf(['sm', 'md', 'lg']),
+  fullWidth: PropTypes.bool,
+  disabled: PropTypes.bool,
+  loading: PropTypes.bool,
+  className: PropTypes.string,
+  asChild: PropTypes.bool,
+  type: PropTypes.string,
 };
 
-
+export { buttonVariants };
 export default Button;

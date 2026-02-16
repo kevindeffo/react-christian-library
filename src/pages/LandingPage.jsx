@@ -1,441 +1,301 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCategories } from '../hooks/useCategories';
+import { BookOpen, Sparkles, Smartphone, ShieldCheck, Menu, X, BookMarked, User, LogOut, Library, GraduationCap, Heart } from 'lucide-react';
 import { ROUTES } from '../utils/constants';
+import Button from '../components/ui/Button';
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuLabel,
+} from '../components/ui/DropdownMenu';
 
 function LandingPage() {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const { categories } = useCategories();
 
   const handleLogout = () => {
     logout();
-    window.location.reload(); // Refresh to update UI
+    window.location.reload();
   };
 
   return (
-    <div className="min-vh-100" style={{ backgroundColor: '#f8f9fa' }}>
+    <div className="min-h-screen bg-gray-50">
+      {/* Skip link */}
+      <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:p-4 focus:bg-white focus:text-primary">
+        Aller au contenu principal
+      </a>
+
       {/* Navigation */}
-      <nav className="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top">
-        <div className="container py-2">
-          <a
-            className="navbar-brand d-flex align-items-center"
-            href="/"
-            style={{ cursor: 'pointer' }}
-          >
-            <span style={{ fontSize: '1.8rem', marginRight: '10px' }}>📖</span>
-            <span style={{ fontWeight: '700', color: '#667eea', fontSize: '1.4rem' }}>
-              Bibliothèque Chrétienne
-            </span>
-          </a>
+      <header className="sticky top-0 z-30 bg-white border-b border-gray-100 shadow-sm">
+        <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" aria-label="Navigation principale">
+          <div className="flex items-center justify-between h-16">
+            {/* Logo */}
+            <a href="/" className="flex items-center gap-2 no-underline">
+              <BookOpen className="h-7 w-7 text-primary" />
+              <span className="font-bold text-primary text-xl">BiblioHub</span>
+            </a>
 
-          <button
-            className="navbar-toggler border-0"
-            type="button"
-            data-bs-toggle="collapse"
-            data-bs-target="#navbarNav"
-            aria-controls="navbarNav"
-            aria-expanded="false"
-            aria-label="Toggle navigation"
-          >
-            <span className="navbar-toggler-icon"></span>
-          </button>
-
-          <div className="collapse navbar-collapse" id="navbarNav">
-            <ul className="navbar-nav ms-auto align-items-lg-center gap-1">
-              <li className="nav-item">
-                <a
-                  className="nav-link px-3 py-2"
-                  href="#catalogue"
-                  style={{
-                    fontWeight: '500',
-                    color: '#5f6368',
-                    transition: 'color 0.2s'
-                  }}
-                >
-                  Catalogue
-                </a>
-              </li>
-              <li className="nav-item">
-                <a
-                  className="nav-link px-3 py-2"
-                  href="#categories"
-                  style={{
-                    fontWeight: '500',
-                    color: '#5f6368',
-                    transition: 'color 0.2s'
-                  }}
-                >
-                  Catégories
-                </a>
-              </li>
-              <li className="nav-item">
-                <a
-                  className="nav-link px-3 py-2"
-                  href="#about"
-                  style={{
-                    fontWeight: '500',
-                    color: '#5f6368',
-                    transition: 'color 0.2s'
-                  }}
-                >
-                  À propos
-                </a>
-              </li>
+            {/* Desktop nav */}
+            <div className="hidden md:flex items-center gap-6">
+              <a href="#catalogue" className="text-sm font-medium text-gray-600 hover:text-primary transition-colors no-underline">Catalogue</a>
+              <a href="#categories" className="text-sm font-medium text-gray-600 hover:text-primary transition-colors no-underline">Catégories</a>
+              <a href="#about" className="text-sm font-medium text-gray-600 hover:text-primary transition-colors no-underline">À propos</a>
 
               {user ? (
-                <>
+                <div className="flex items-center gap-3">
                   {user.role === 'admin' && (
-                    <li className="nav-item ms-lg-2">
-                      <button
-                        className="btn px-4 py-2"
-                        onClick={() => navigate(ROUTES.ADMIN)}
-                        style={{
-                          backgroundColor: '#667eea',
-                          color: 'white',
-                          borderRadius: '25px',
-                          border: 'none',
-                          fontWeight: '600',
-                          fontSize: '0.95rem',
-                          transition: 'all 0.2s'
-                        }}
-                      >
-                        Admin
-                      </button>
-                    </li>
+                    <Button size="sm" onClick={() => navigate(ROUTES.ADMIN)}>Admin</Button>
                   )}
-                  <li className="nav-item dropdown ms-lg-3 mt-2 mt-lg-0">
-                    <button
-                      className="btn d-flex align-items-center gap-2 p-0 border-0 bg-transparent dropdown-toggle"
-                      id="userDropdown"
-                      data-bs-toggle="dropdown"
-                      aria-expanded="false"
-                      style={{
-                        cursor: 'pointer'
-                      }}
-                    >
-                      <div
-                        className="d-flex align-items-center justify-content-center"
-                        style={{
-                          width: '40px',
-                          height: '40px',
-                          borderRadius: '50%',
-                          backgroundColor: '#667eea',
-                          color: 'white',
-                          fontWeight: '600',
-                          fontSize: '1.1rem',
-                          transition: 'all 0.2s'
-                        }}
-                      >
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button className="flex items-center justify-center w-10 h-10 rounded-full bg-primary text-white font-semibold text-sm hover:bg-primary-dark transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2">
                         {user.name.charAt(0).toUpperCase()}
-                      </div>
-                    </button>
-                    <ul
-                      className="dropdown-menu dropdown-menu-end shadow-sm border-0 mt-2"
-                      aria-labelledby="userDropdown"
-                      style={{
-                        borderRadius: '12px',
-                        minWidth: '200px'
-                      }}
-                    >
-                      <li className="px-3 py-2" style={{ borderBottom: '1px solid #f0f0f0' }}>
-                        <div className="text-muted small">Connecté en tant que</div>
-                        <div className="fw-bold" style={{ color: '#667eea' }}>{user.name}</div>
-                      </li>
-                      <li>
-                        <button
-                          className="dropdown-item d-flex align-items-center gap-2 py-2"
-                          onClick={() => navigate('/my-books')}
-                          style={{
-                            transition: 'background-color 0.2s'
-                          }}
-                        >
-                          <svg
-                            width="18"
-                            height="18"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <path
-                              d="M4 19.5C4 18.837 4.26339 18.2011 4.73223 17.7322C5.20107 17.2634 5.83696 17 6.5 17H20M4 19.5C4 20.163 4.26339 20.7989 4.73223 21.2678C5.20107 21.7366 5.83696 22 6.5 22H20V2H6.5C5.83696 2 5.20107 2.26339 4.73223 2.73223C4.26339 3.20107 4 3.83696 4 4.5V19.5Z"
-                              stroke="#5f6368"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                          </svg>
-                          Mes livres
-                        </button>
-                      </li>
-                      <li>
-                        <button
-                          className="dropdown-item d-flex align-items-center gap-2 py-2"
-                          onClick={() => navigate('/profile')}
-                          style={{
-                            transition: 'background-color 0.2s'
-                          }}
-                        >
-                          <svg
-                            width="18"
-                            height="18"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <path
-                              d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21M16 7C16 9.20914 14.2091 11 12 11C9.79086 11 8 9.20914 8 7C8 4.79086 9.79086 3 12 3C14.2091 3 16 4.79086 16 7Z"
-                              stroke="#5f6368"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                          </svg>
-                          Mon profil
-                        </button>
-                      </li>
-                      <li>
-                        <hr className="dropdown-divider my-1" />
-                      </li>
-                      <li>
-                        <button
-                          className="dropdown-item d-flex align-items-center gap-2 py-2 text-danger"
-                          onClick={handleLogout}
-                          style={{
-                            transition: 'background-color 0.2s'
-                          }}
-                        >
-                          <svg
-                            width="18"
-                            height="18"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <path
-                              d="M9 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H9M16 17L21 12M21 12L16 7M21 12H9"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                          </svg>
-                          Déconnexion
-                        </button>
-                      </li>
-                    </ul>
-                  </li>
-                </>
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuLabel>
+                        <div className="text-gray-500 text-xs font-normal">Connecté en tant que</div>
+                        <div className="text-primary font-semibold">{user.name}</div>
+                      </DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={() => navigate('/my-books')}>
+                        <BookMarked className="h-4 w-4 text-gray-500" /> Mes livres
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => navigate('/profile')}>
+                        <User className="h-4 w-4 text-gray-500" /> Mon profil
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={handleLogout} className="text-danger">
+                        <LogOut className="h-4 w-4" /> Déconnexion
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
               ) : (
-                <li className="nav-item ms-lg-3 mt-2 mt-lg-0">
-                  <div className="d-flex gap-2">
-                    <button
-                      className="btn btn-outline-secondary px-4 py-2"
-                      onClick={() => navigate(ROUTES.LOGIN)}
-                      style={{
-                        borderRadius: '25px',
-                        borderColor: '#d1d5db',
-                        color: '#5f6368',
-                        fontWeight: '500',
-                        fontSize: '0.95rem',
-                        transition: 'all 0.2s'
-                      }}
-                    >
-                      Connexion
-                    </button>
-                    <button
-                      className="btn px-4 py-2"
-                      onClick={() => navigate(ROUTES.REGISTER)}
-                      style={{
-                        backgroundColor: '#667eea',
-                        color: 'white',
-                        borderRadius: '25px',
-                        border: 'none',
-                        fontWeight: '600',
-                        fontSize: '0.95rem',
-                        transition: 'all 0.2s'
-                      }}
-                    >
-                      S'inscrire
-                    </button>
-                  </div>
-                </li>
+                <div className="flex items-center gap-2">
+                  <Button variant="ghost" size="sm" onClick={() => navigate(ROUTES.LOGIN)}>Connexion</Button>
+                  <Button size="sm" onClick={() => navigate(ROUTES.REGISTER)}>S&apos;inscrire</Button>
+                </div>
               )}
-            </ul>
-          </div>
-        </div>
-      </nav>
+            </div>
 
-      {/* Hero Section */}
-      <section className="py-5" style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
-        <div className="container">
-          <div className="row align-items-center py-5">
-            <div className="col-lg-6 text-white">
-              <h1 className="display-3 fw-bold mb-4">
-                Nourrissez votre foi avec notre collection de livres chrétiens
-              </h1>
-              <p className="lead mb-4">
-                Découvrez des milliers de livres chrétiens pour enrichir votre vie spirituelle,
-                approfondir votre foi et grandir dans votre marche avec Dieu.
-              </p>
-              <div className="d-flex gap-3">
-                <button
-                  className="btn btn-lg px-5"
-                  onClick={() => navigate('/catalog')}
-                  style={{
-                    backgroundColor: 'white',
-                    color: '#667eea',
-                    borderRadius: '30px',
-                    border: 'none',
-                    fontWeight: '600'
-                  }}
-                >
-                  Explorer le catalogue
-                </button>
+            {/* Mobile menu button */}
+            <button
+              className="md:hidden p-2 rounded-lg text-gray-600 hover:bg-gray-100"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              aria-label="Menu"
+            >
+              {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </button>
+          </div>
+
+          {/* Mobile menu */}
+          {mobileMenuOpen && (
+            <div className="md:hidden border-t border-gray-100 py-4 space-y-2">
+              <a href="#catalogue" className="block px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 no-underline">Catalogue</a>
+              <a href="#categories" className="block px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 no-underline">Catégories</a>
+              <a href="#about" className="block px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 no-underline">À propos</a>
+              <div className="pt-2 border-t border-gray-100 flex gap-2">
+                {user ? (
+                  <>
+                    <Button variant="ghost" size="sm" fullWidth onClick={() => { navigate('/my-books'); setMobileMenuOpen(false); }}>Mes livres</Button>
+                    <Button variant="danger" size="sm" fullWidth onClick={handleLogout}>Déconnexion</Button>
+                  </>
+                ) : (
+                  <>
+                    <Button variant="ghost" size="sm" fullWidth onClick={() => navigate(ROUTES.LOGIN)}>Connexion</Button>
+                    <Button size="sm" fullWidth onClick={() => navigate(ROUTES.REGISTER)}>S&apos;inscrire</Button>
+                  </>
+                )}
               </div>
             </div>
-            <div className="col-lg-6 text-center mt-5 mt-lg-0">
-              <div style={{ fontSize: '15rem', opacity: 0.9 }}>📚</div>
-            </div>
-          </div>
-        </div>
-      </section>
+          )}
+        </nav>
+      </header>
 
-      {/* Features Section */}
-      <section className="py-5 bg-white">
-        <div className="container py-5">
-          <div className="row g-4">
-            <div className="col-md-4 text-center">
-              <div className="mb-3" style={{ fontSize: '3rem' }}>✨</div>
-              <h4 style={{ color: '#667eea' }}>Collection Variée</h4>
-              <p className="text-muted">
-                Des livres pour tous les âges et tous les niveaux de foi
-              </p>
-            </div>
-            <div className="col-md-4 text-center">
-              <div className="mb-3" style={{ fontSize: '3rem' }}>📱</div>
-              <h4 style={{ color: '#667eea' }}>Lecture Facile</h4>
-              <p className="text-muted">
-                Lisez sur n'importe quel appareil, à tout moment
-              </p>
-            </div>
-            <div className="col-md-4 text-center">
-              <div className="mb-3" style={{ fontSize: '3rem' }}>🔒</div>
-              <h4 style={{ color: '#667eea' }}>Contenu de Qualité</h4>
-              <p className="text-muted">
-                Des livres soigneusement sélectionnés et vérifiés
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Categories Section */}
-      <section id="categories" className="py-5" style={{ backgroundColor: '#f8f9fa' }}>
-        <div className="container py-5">
-          <div className="text-center mb-5">
-            <h2 className="display-5 fw-bold mb-3" style={{ color: '#667eea' }}>
-              Nos Catégories
-            </h2>
-            <p className="lead text-muted">
-              Explorez notre collection organisée par thèmes
-            </p>
+      <main id="main-content">
+        {/* Hero */}
+        <section className="relative overflow-hidden bg-gradient-to-br from-violet-600 via-purple-700 to-indigo-800 py-24 lg:py-32">
+          {/* Floating shapes */}
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            <div className="absolute top-10 left-[10%] w-72 h-72 bg-white/10 rounded-full blur-3xl animate-float" />
+            <div className="absolute bottom-10 right-[15%] w-96 h-96 bg-purple-400/15 rounded-full blur-3xl animate-float-delayed" />
+            <div className="absolute top-1/2 left-[60%] w-48 h-48 bg-indigo-300/10 rounded-full blur-2xl animate-float-slow" />
+            {/* Floating icons */}
+            <BookOpen className="absolute top-16 right-[20%] h-12 w-12 text-white/10 animate-float" strokeWidth={1} />
+            <Library className="absolute bottom-20 left-[12%] h-16 w-16 text-white/8 animate-float-delayed" strokeWidth={0.8} />
+            <GraduationCap className="absolute top-1/3 right-[8%] h-10 w-10 text-white/8 animate-float-slow" strokeWidth={1} />
+            <Heart className="absolute bottom-1/3 left-[30%] h-8 w-8 text-white/6 animate-float" strokeWidth={1} />
           </div>
 
-          <div className="row g-4">
-            {categories.map((category) => (
-              <div key={category.id} className="col-6 col-md-4 col-lg-3">
-                <div
-                  className="card border-0 shadow-sm h-100 text-center"
-                  style={{
-                    borderRadius: '15px',
-                    cursor: 'pointer',
-                    transition: 'all 0.3s ease'
-                  }}
-                  onClick={() => navigate(`/catalog?category=${category.id}`)}
-                >
-                  <div className="card-body p-4">
-                    <div style={{ fontSize: '3rem' }} className="mb-3">
-                      {category.icon}
-                    </div>
-                    <h6
-                      className="card-title mb-0"
-                      style={{
-                        color: category.color,
-                        fontWeight: '600',
-                        fontSize: '0.9rem'
-                      }}
+          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="grid lg:grid-cols-2 gap-12 items-center">
+              {/* Text content */}
+              <div className="text-white">
+                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-sm text-white/90 mb-6">
+                  <Sparkles className="h-4 w-4" />
+                  Votre bibliothèque numérique
+                </div>
+                <h1 className="text-4xl lg:text-6xl font-bold mb-6 leading-tight tracking-tight">
+                  Explorez un monde de <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 to-orange-300">connaissances</span>
+                </h1>
+                <p className="text-lg lg:text-xl text-white/70 mb-10 max-w-lg leading-relaxed">
+                  Découvrez des milliers de livres pour enrichir votre culture, stimuler votre imagination et élargir vos horizons.
+                </p>
+                <div className="flex flex-wrap gap-4">
+                  <Button
+                    variant="none"
+                    size="lg"
+                    className="bg-white text-primary hover:bg-gray-100 font-semibold shadow-lg shadow-black/10"
+                    onClick={() => navigate('/catalog')}
+                  >
+                    Explorer le catalogue
+                  </Button>
+                  {!user && (
+                    <Button
+                      variant="none"
+                      size="lg"
+                      className="border border-white/30 bg-white/10 text-white hover:bg-white/20 backdrop-blur-sm font-medium"
+                      onClick={() => navigate(ROUTES.REGISTER)}
                     >
-                      {category.name}
-                    </h6>
-                  </div>
+                      Créer un compte
+                    </Button>
+                  )}
                 </div>
               </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
-      {/* About Section */}
-      <section id="about" className="py-5 bg-white">
-        <div className="container py-5">
-          <div className="row align-items-center">
-            <div className="col-lg-6">
-              <h2 className="display-5 fw-bold mb-4" style={{ color: '#667eea' }}>
-                Notre Mission
-              </h2>
-              <p className="lead text-muted mb-4">
-                Rendre la littérature chrétienne accessible à tous, partout dans le monde.
-              </p>
-              <p className="text-muted">
-                Notre bibliothèque chrétienne a été créée avec la vision de permettre à chacun
-                d'accéder facilement à des ressources spirituelles de qualité. Que vous soyez
-                nouveau dans la foi ou chrétien de longue date, vous trouverez des livres qui
-                nourriront votre âme et renforceront votre marche avec Dieu.
-              </p>
-            </div>
-            <div className="col-lg-6 text-center mt-5 mt-lg-0">
-              <div style={{ fontSize: '12rem' }}>✝️</div>
+              {/* Glassmorphism card */}
+              <div className="hidden lg:flex justify-center">
+                <div className="relative">
+                  <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-3xl p-8 shadow-2xl shadow-black/10">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-5 border border-white/10">
+                        <BookOpen className="h-8 w-8 text-amber-300 mb-3" />
+                        <p className="text-white font-semibold text-lg">1000+</p>
+                        <p className="text-white/60 text-sm">Livres disponibles</p>
+                      </div>
+                      <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-5 border border-white/10">
+                        <GraduationCap className="h-8 w-8 text-emerald-300 mb-3" />
+                        <p className="text-white font-semibold text-lg">{categories.length}</p>
+                        <p className="text-white/60 text-sm">Catégories</p>
+                      </div>
+                      <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-5 border border-white/10">
+                        <Smartphone className="h-8 w-8 text-blue-300 mb-3" />
+                        <p className="text-white font-semibold text-lg">24/7</p>
+                        <p className="text-white/60 text-sm">Accès illimité</p>
+                      </div>
+                      <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-5 border border-white/10">
+                        <ShieldCheck className="h-8 w-8 text-pink-300 mb-3" />
+                        <p className="text-white font-semibold text-lg">100%</p>
+                        <p className="text-white/60 text-sm">Contenu vérifié</p>
+                      </div>
+                    </div>
+                  </div>
+                  {/* Glow effect behind the card */}
+                  <div className="absolute -inset-4 bg-gradient-to-r from-violet-400/20 to-indigo-400/20 rounded-3xl blur-2xl -z-10" />
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* CTA Section */}
-      <section className="py-5" style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
-        <div className="container py-5 text-center text-white">
-          <h2 className="display-5 fw-bold mb-4">
-            Prêt à commencer votre voyage spirituel ?
-          </h2>
-          <p className="lead mb-4">
-            Explorez notre catalogue et trouvez le livre qui transformera votre vie
-          </p>
-          <button
-            className="btn btn-lg px-5"
-            onClick={() => navigate('/catalog')}
-            style={{
-              backgroundColor: 'white',
-              color: '#667eea',
-              borderRadius: '30px',
-              border: 'none',
-              fontWeight: '600'
-            }}
-          >
-            Voir le catalogue
-          </button>
-        </div>
-      </section>
+        {/* Features */}
+        <section className="py-20 bg-white">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="grid md:grid-cols-3 gap-8">
+              {[
+                { icon: Sparkles, title: 'Collection Variée', desc: 'Des livres pour tous les âges et tous les goûts', color: 'text-amber-500 bg-amber-50' },
+                { icon: Smartphone, title: 'Lecture Facile', desc: "Lisez sur n'importe quel appareil, à tout moment", color: 'text-blue-500 bg-blue-50' },
+                { icon: ShieldCheck, title: 'Contenu de Qualité', desc: 'Des livres soigneusement sélectionnés et vérifiés', color: 'text-emerald-500 bg-emerald-50' },
+              ].map((f) => (
+                <div key={f.title} className="text-center p-6">
+                  <div className={`inline-flex items-center justify-center w-14 h-14 rounded-xl ${f.color} mb-4`}>
+                    <f.icon className="h-7 w-7" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">{f.title}</h3>
+                  <p className="text-gray-500">{f.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Categories */}
+        <section id="categories" className="py-20 bg-gray-50">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-bold text-gray-900 mb-3">Nos Catégories</h2>
+              <p className="text-lg text-gray-500">Explorez notre collection organisée par thèmes</p>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {categories.map((category) => (
+                <button
+                  key={category.id}
+                  className="bg-white rounded-xl border border-gray-100 shadow-card p-6 text-center hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-200 cursor-pointer"
+                  onClick={() => navigate(`/catalog?category=${category.id}`)}
+                >
+                  <div className="text-3xl mb-3">{category.icon}</div>
+                  <h4 className="text-sm font-semibold" style={{ color: category.color }}>
+                    {category.name}
+                  </h4>
+                </button>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* About */}
+        <section id="about" className="py-20 bg-white">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="grid lg:grid-cols-2 gap-12 items-center">
+              <div>
+                <h2 className="text-3xl font-bold text-gray-900 mb-4">Notre Mission</h2>
+                <p className="text-lg text-gray-500 mb-4">
+                  Rendre la lecture accessible à tous, partout dans le monde.
+                </p>
+                <p className="text-gray-500">
+                  BiblioHub a été créée avec la vision de permettre à chacun d&apos;accéder facilement à des livres de qualité. Que vous soyez passionné de romans, de sciences ou de développement personnel, vous trouverez des ouvrages qui enrichiront votre esprit et nourriront votre curiosité.
+                </p>
+              </div>
+              <div className="hidden lg:flex justify-center">
+                <BookOpen className="h-48 w-48 text-primary/20" strokeWidth={0.5} />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* CTA */}
+        <section className="py-20 bg-gradient-to-br from-violet-600 to-purple-800">
+          <div className="max-w-3xl mx-auto px-4 text-center text-white">
+            <h2 className="text-3xl font-bold mb-4">Prêt à commencer votre aventure littéraire ?</h2>
+            <p className="text-lg text-white/80 mb-8">Explorez notre catalogue et trouvez le livre qui transformera votre vie</p>
+            <Button
+              variant="none"
+              size="lg"
+              className="bg-white text-primary hover:bg-gray-100 font-semibold shadow-lg shadow-black/10"
+              onClick={() => navigate('/catalog')}
+            >
+              Voir le catalogue
+            </Button>
+          </div>
+        </section>
+      </main>
 
       {/* Footer */}
-      <footer className="bg-dark text-white py-4">
-        <div className="container text-center">
-          <p className="mb-2">
-            <span style={{ fontSize: '1.5rem', marginRight: '8px' }}>📖</span>
-            <strong>Bibliothèque Chrétienne</strong>
-          </p>
-          <p className="mb-0 text-muted small">
-            © 2024 Bibliothèque Chrétienne. Tous droits réservés.
-          </p>
+      <footer className="bg-gray-900 text-white py-8">
+        <div className="max-w-7xl mx-auto px-4 text-center">
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <BookOpen className="h-5 w-5" />
+            <strong>BiblioHub</strong>
+          </div>
+          <p className="text-gray-400 text-sm">© 2024 BiblioHub. Tous droits réservés.</p>
         </div>
       </footer>
     </div>

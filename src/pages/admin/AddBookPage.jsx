@@ -3,6 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import { addBook } from '../../services/bookService';
 import categories from '../../config/categories.json';
 import AdminLayout from '../../components/layouts/AdminLayout';
+import { Card, CardContent } from '../../components/ui/Card';
+import Input from '../../components/ui/Input';
+import Label from '../../components/ui/Label';
+import Select from '../../components/ui/Select';
+import Button from '../../components/ui/Button';
+import { toast } from '../../components/ui/Toaster';
+import { Upload, FileCheck, X, BookOpen } from 'lucide-react';
+import { cn } from '../../lib/utils';
 
 function AddBookPage() {
   const [selectedFile, setSelectedFile] = useState(null);
@@ -10,7 +18,7 @@ function AddBookPage() {
   const [bookAuthor, setBookAuthor] = useState('');
   const [bookDescription, setBookDescription] = useState('');
   const [bookPrice, setBookPrice] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('bible');
+  const [selectedCategory, setSelectedCategory] = useState('fiction');
   const [saving, setSaving] = useState(false);
   const navigate = useNavigate();
 
@@ -23,7 +31,7 @@ function AddBookPage() {
         setBookTitle(file.name.replace('.pdf', ''));
       }
     } else {
-      alert('Veuillez sélectionner un fichier PDF');
+      toast.error('Veuillez sélectionner un fichier PDF');
     }
   };
 
@@ -31,7 +39,7 @@ function AddBookPage() {
     e.preventDefault();
 
     if (!selectedFile || !bookTitle || !bookAuthor) {
-      alert('Veuillez remplir tous les champs obligatoires');
+      toast.error('Veuillez remplir tous les champs obligatoires');
       return;
     }
 
@@ -51,19 +59,19 @@ function AddBookPage() {
       };
 
       await addBook(bookData);
-      alert('Livre publié avec succès!');
+      toast.success('Livre publié avec succès !');
       // Reset form
       setSelectedFile(null);
       setBookTitle('');
       setBookAuthor('');
       setBookDescription('');
       setBookPrice('');
-      setSelectedCategory('bible');
+      setSelectedCategory('fiction');
       // Rediriger vers la gestion des livres
       navigate('/admin/books');
     } catch (error) {
       console.error('Erreur lors de la publication:', error);
-      alert('Erreur lors de la publication du livre');
+      toast.error('Erreur lors de la publication du livre');
     } finally {
       setSaving(false);
     }
@@ -71,44 +79,39 @@ function AddBookPage() {
 
   return (
     <AdminLayout>
-      <div className="p-4">
+      <div className="p-4 md:p-6">
         {/* Header */}
-        <div className="mb-4">
-          <h2 className="mb-2" style={{ color: '#5f6368', fontWeight: '600' }}>
+        <div className="mb-6">
+          <h2 className="text-2xl font-semibold text-gray-700 mb-1">
             Ajouter un nouveau livre
           </h2>
-          <p className="text-muted">
+          <p className="text-gray-500">
             Remplissez les informations ci-dessous pour publier un nouveau livre dans la bibliothèque
           </p>
         </div>
 
         {/* Form */}
-        <div className="card border-0 shadow-sm" style={{ borderRadius: '15px' }}>
-          <div className="card-body p-4">
-            <form onSubmit={handlePublish}>
-              {/* Upload PDF - PREMIER ELEMENT */}
-              <div className="mb-4">
-                <label htmlFor="pdfFile" className="form-label fw-semibold">
-                  Fichier PDF <span className="text-danger">*</span>
-                </label>
+        <Card>
+          <CardContent>
+            <form onSubmit={handlePublish} className="space-y-6">
+              {/* Upload PDF */}
+              <div>
+                <Label htmlFor="pdfFile" required>Fichier PDF</Label>
                 <div
-                  className="border-2 border-dashed p-5 text-center"
-                  style={{
-                    borderRadius: '15px',
-                    borderColor: selectedFile ? '#10b981' : '#e0e0e0',
-                    backgroundColor: selectedFile ? '#f0fdf4' : '#f8f9fa'
-                  }}
+                  className={cn(
+                    'mt-2 border-2 border-dashed rounded-xl p-8 text-center transition-colors',
+                    selectedFile
+                      ? 'border-success bg-success/5'
+                      : 'border-gray-200 bg-gray-50 hover:border-gray-300'
+                  )}
                 >
                   {!selectedFile ? (
                     <>
-                      <div className="mb-3" style={{ fontSize: '3rem' }}>📄</div>
-                      <label htmlFor="pdfFile" className="btn btn-lg" style={{
-                        backgroundColor: '#8b5cf6',
-                        color: 'white',
-                        borderRadius: '25px',
-                        border: 'none',
-                        cursor: 'pointer'
-                      }}>
+                      <Upload className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                      <label
+                        htmlFor="pdfFile"
+                        className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-primary text-white text-sm font-medium cursor-pointer hover:bg-primary/90 transition-colors"
+                      >
                         Sélectionner le PDF
                       </label>
                       <input
@@ -116,29 +119,29 @@ function AddBookPage() {
                         id="pdfFile"
                         accept=".pdf"
                         onChange={handleFileSelect}
-                        style={{ display: 'none' }}
+                        className="hidden"
                         required
                       />
-                      <p className="text-muted small mt-3 mb-0">
+                      <p className="text-gray-400 text-sm mt-3">
                         Le titre sera automatiquement rempli avec le nom du fichier
                       </p>
                     </>
                   ) : (
                     <div>
-                      <div className="mb-2" style={{ fontSize: '2rem' }}>✅</div>
-                      <p className="mb-2 fw-semibold">{selectedFile.name}</p>
-                      <p className="text-muted small mb-3">
+                      <FileCheck className="h-10 w-10 text-success mx-auto mb-3" />
+                      <p className="font-semibold text-gray-700 mb-1">{selectedFile.name}</p>
+                      <p className="text-gray-400 text-sm mb-4">
                         {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
                       </p>
                       <button
                         type="button"
-                        className="btn btn-sm btn-outline-danger"
+                        className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full border border-danger text-danger text-sm hover:bg-danger/5 transition-colors"
                         onClick={() => {
                           setSelectedFile(null);
                           setBookTitle('');
                         }}
-                        style={{ borderRadius: '15px' }}
                       >
+                        <X className="h-3.5 w-3.5" />
                         Changer de fichier
                       </button>
                     </div>
@@ -147,151 +150,114 @@ function AddBookPage() {
               </div>
 
               {/* Titre du livre */}
-              <div className="mb-4">
-                <label htmlFor="bookTitle" className="form-label fw-semibold">
-                  Titre du livre <span className="text-danger">*</span>
-                </label>
-                <input
-                  type="text"
-                  className="form-control form-control-lg"
+              <div>
+                <Label htmlFor="bookTitle" required>Titre du livre</Label>
+                <Input
                   id="bookTitle"
                   value={bookTitle}
                   onChange={(e) => setBookTitle(e.target.value)}
-                  placeholder="Ex: La Bible Segond 21"
-                  style={{ borderRadius: '10px' }}
+                  placeholder="Ex: Le Petit Prince"
+                  className="mt-2"
                   required
                 />
-                <small className="text-muted">
+                <p className="text-xs text-gray-400 mt-1">
                   Vous pouvez modifier le titre auto-rempli
-                </small>
+                </p>
               </div>
 
               {/* Auteur */}
-              <div className="mb-4">
-                <label htmlFor="bookAuthor" className="form-label fw-semibold">
-                  Auteur <span className="text-danger">*</span>
-                </label>
-                <input
-                  type="text"
-                  className="form-control form-control-lg"
+              <div>
+                <Label htmlFor="bookAuthor" required>Auteur</Label>
+                <Input
                   id="bookAuthor"
                   value={bookAuthor}
                   onChange={(e) => setBookAuthor(e.target.value)}
-                  placeholder="Ex: Charles Spurgeon"
-                  style={{ borderRadius: '10px' }}
+                  placeholder="Ex: Antoine de Saint-Exupéry"
+                  className="mt-2"
                   required
                 />
               </div>
 
               {/* Catégorie */}
-              <div className="mb-4">
-                <label htmlFor="bookCategory" className="form-label fw-semibold">
-                  Catégorie <span className="text-danger">*</span>
-                </label>
-                <select
-                  className="form-select form-select-lg"
+              <div>
+                <Label htmlFor="bookCategory" required>Catégorie</Label>
+                <Select
                   id="bookCategory"
                   value={selectedCategory}
                   onChange={(e) => setSelectedCategory(e.target.value)}
-                  style={{ borderRadius: '10px' }}
+                  className="mt-2"
                   required
                 >
                   {categories.map(cat => (
                     <option key={cat.id} value={cat.id}>
-                      {cat.icon} {cat.name}
+                      {cat.name}
                     </option>
                   ))}
-                </select>
+                </Select>
               </div>
 
               {/* Description */}
-              <div className="mb-4">
-                <label htmlFor="bookDescription" className="form-label fw-semibold">
-                  Description
-                </label>
+              <div>
+                <Label htmlFor="bookDescription">Description</Label>
                 <textarea
-                  className="form-control"
                   id="bookDescription"
                   rows="4"
                   value={bookDescription}
                   onChange={(e) => setBookDescription(e.target.value)}
                   placeholder="Une brève description du livre..."
-                  style={{ borderRadius: '10px' }}
+                  className={cn(
+                    'mt-2 flex w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm transition-colors',
+                    'placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1',
+                    'disabled:cursor-not-allowed disabled:opacity-50 resize-none'
+                  )}
                 />
               </div>
 
               {/* Prix */}
-              <div className="mb-4">
-                <label htmlFor="bookPrice" className="form-label fw-semibold">
-                  Prix (optionnel)
-                </label>
-                <div className="input-group input-group-lg">
-                  <input
+              <div>
+                <Label htmlFor="bookPrice">Prix (optionnel)</Label>
+                <div className="mt-2 flex">
+                  <Input
                     type="number"
-                    className="form-control"
                     id="bookPrice"
                     value={bookPrice}
                     onChange={(e) => setBookPrice(e.target.value)}
                     placeholder="0"
                     min="0"
                     step="0.01"
-                    style={{ borderRadius: '10px 0 0 10px' }}
+                    className="rounded-r-none"
                   />
-                  <span
-                    className="input-group-text"
-                    style={{
-                      backgroundColor: '#f8f9fa',
-                      borderRadius: '0 10px 10px 0'
-                    }}
-                  >
+                  <span className="inline-flex items-center px-4 rounded-r-xl border border-l-0 border-gray-200 bg-gray-50 text-sm text-gray-500 font-medium">
                     FCFA
                   </span>
                 </div>
-                <small className="text-muted">Laissez vide pour un livre gratuit</small>
+                <p className="text-xs text-gray-400 mt-1">Laissez vide pour un livre gratuit</p>
               </div>
 
               {/* Buttons */}
-              <div className="d-flex gap-3 justify-content-end">
-                <button
+              <div className="flex gap-3 justify-end pt-2">
+                <Button
                   type="button"
-                  className="btn btn-lg px-4"
+                  variant="ghost"
+                  size="lg"
+                  className="rounded-full"
                   onClick={() => navigate('/admin/books')}
-                  style={{
-                    backgroundColor: '#e5e7eb',
-                    color: '#4b5563',
-                    borderRadius: '25px',
-                    border: 'none'
-                  }}
                 >
                   Annuler
-                </button>
-                <button
+                </Button>
+                <Button
                   type="submit"
-                  className="btn btn-lg px-5"
-                  disabled={saving}
-                  style={{
-                    backgroundColor: '#8b5cf6',
-                    color: 'white',
-                    borderRadius: '25px',
-                    border: 'none'
-                  }}
+                  size="lg"
+                  className="rounded-full"
+                  loading={saving}
                 >
-                  {saving ? (
-                    <>
-                      <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                      Publication...
-                    </>
-                  ) : (
-                    <>
-                      <span className="me-2">📚</span>
-                      Publier le livre
-                    </>
-                  )}
-                </button>
+                  <BookOpen className="h-5 w-5" />
+                  Publier le livre
+                </Button>
               </div>
             </form>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       </div>
     </AdminLayout>
   );

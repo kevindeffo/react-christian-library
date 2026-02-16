@@ -5,10 +5,12 @@ import { getBookById } from '../services/libraryService';
 import { useCategories } from '../hooks/useCategories';
 import { formatDate, formatSize } from '../utils/formatters';
 import Button from '../components/ui/Button';
-import Card from '../components/ui/Card';
+import { Card, CardContent } from '../components/ui/Card';
 import CategoryBadge from '../components/shared/CategoryBadge';
-import { colors } from '../config/theme';
 import { ROUTES } from '../utils/constants';
+import { ArrowLeft, BookOpen, Calendar, HardDrive, Eye, Check, Lock } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
+import { cn } from '../lib/utils';
 
 function BookDetailsPage() {
   const [book, setBook] = useState(null);
@@ -47,14 +49,12 @@ function BookDetailsPage() {
 
   const handleReadBook = () => {
     if (!user) {
-      // Redirect to login with return URL
       navigate(ROUTES.LOGIN, {
         state: { from: { pathname: ROUTES.READER, search: `?id=${bookId}` } }
       });
       return;
     }
 
-    // Navigate to reader
     navigate(ROUTES.READER, {
       state: {
         file: book.file,
@@ -67,10 +67,8 @@ function BookDetailsPage() {
 
   if (loading) {
     return (
-      <div className="min-vh-100 d-flex align-items-center justify-content-center">
-        <div className="spinner-border" style={{ color: colors.primary }} role="status">
-          <span className="visually-hidden">Chargement...</span>
-        </div>
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-10 w-10 animate-spin text-primary" />
       </div>
     );
   }
@@ -80,184 +78,176 @@ function BookDetailsPage() {
   const category = getCategoryById(book.category);
 
   return (
-    <div className="min-vh-100" style={{ backgroundColor: colors.background }}>
+    <div className="min-h-screen bg-gray-50">
       {/* Navbar */}
-      <nav className="navbar navbar-light bg-white shadow-sm">
-        <div className="container-fluid px-4">
-          <div className="d-flex align-items-center">
-            <button
-              className="btn btn-link text-decoration-none me-3"
-              onClick={() => navigate(ROUTES.CATALOG)}
-              style={{ color: colors.text }}
-            >
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </button>
-            <Link to={ROUTES.HOME} className="navbar-brand mb-0 h4 text-decoration-none" style={{ color: colors.text }}>
-              <span style={{ fontSize: '1.5rem', marginRight: '8px' }}>📖</span>
-              Bibliothèque Chrétienne
-            </Link>
-          </div>
-          {!user && (
-            <div>
-              <Link to={ROUTES.LOGIN}>
-                <Button variant="outline" size="sm">
-                  Connexion
-                </Button>
+      <nav className="bg-white border-b border-gray-100 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center">
+              <button
+                className="p-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors mr-3"
+                onClick={() => navigate(ROUTES.CATALOG)}
+                aria-label="Retour au catalogue"
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </button>
+              <Link to={ROUTES.HOME} className="flex items-center gap-2 no-underline">
+                <BookOpen className="h-6 w-6 text-primary" />
+                <span className="font-bold text-primary text-lg">BiblioHub</span>
               </Link>
             </div>
-          )}
+            {!user && (
+              <div>
+                <Link to={ROUTES.LOGIN}>
+                  <Button variant="outline" size="sm">
+                    Connexion
+                  </Button>
+                </Link>
+              </div>
+            )}
+          </div>
         </div>
       </nav>
 
       {/* Content */}
-      <div className="container py-5">
-        <div className="row">
-          {/* Book Cover/Icon */}
-          <div className="col-lg-4 mb-4">
-            <Card padding="xl" className="text-center">
-              <div
-                style={{
-                  width: '100%',
-                  height: '400px',
-                  backgroundColor: colors.backgroundDark,
-                  borderRadius: '15px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginBottom: '20px'
-                }}
-              >
-                <svg width="150" height="150" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" stroke={colors.primary} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" stroke={colors.primary} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="grid lg:grid-cols-3 gap-8">
+          {/* Left column - Book Cover */}
+          <div className="lg:col-span-1">
+            <Card>
+              <CardContent className="p-6 text-center">
+                <div className="bg-gray-100 rounded-xl h-96 flex items-center justify-center mb-6">
+                  <BookOpen className="h-24 w-24 text-primary/30" />
+                </div>
 
-              {user ? (
-                <Button
-                  variant="primary"
-                  size="lg"
-                  fullWidth
-                  onClick={handleReadBook}
-                  icon="📖"
-                >
-                  Lire maintenant
-                </Button>
-              ) : (
-                <Button
-                  variant="primary"
-                  size="lg"
-                  fullWidth
-                  onClick={handleReadBook}
-                  icon="🔒"
-                >
-                  Se connecter pour lire
-                </Button>
-              )}
+                {user ? (
+                  <Button
+                    variant="primary"
+                    size="lg"
+                    fullWidth
+                    onClick={handleReadBook}
+                  >
+                    <BookOpen className="h-5 w-5" />
+                    Lire maintenant
+                  </Button>
+                ) : (
+                  <Button
+                    variant="primary"
+                    size="lg"
+                    fullWidth
+                    onClick={handleReadBook}
+                  >
+                    <Lock className="h-5 w-5" />
+                    Se connecter pour lire
+                  </Button>
+                )}
 
-              {!user && (
-                <p className="text-muted small mt-3 mb-0">
-                  Vous devez être connecté pour lire ce livre
-                </p>
-              )}
+                {!user && (
+                  <p className="text-gray-400 text-sm mt-3">
+                    Vous devez être connecté pour lire ce livre
+                  </p>
+                )}
+              </CardContent>
             </Card>
           </div>
 
-          {/* Book Details */}
-          <div className="col-lg-8">
-            <Card padding="xl">
-              {/* Category Badge */}
-              <div className="mb-3">
-                <CategoryBadge categoryId={book.category} />
-              </div>
+          {/* Right column - Book Details */}
+          <div className="lg:col-span-2">
+            <Card>
+              <CardContent className="p-6">
+                {/* Category Badge */}
+                <div className="mb-3">
+                  <CategoryBadge categoryId={book.category} />
+                </div>
 
-              {/* Title */}
-              <h1 className="mb-3" style={{ color: colors.text }}>
-                {book.name}
-              </h1>
+                {/* Title */}
+                <h1 className="text-2xl font-bold text-gray-900 mb-4">
+                  {book.name}
+                </h1>
 
-              {/* Meta Information */}
-              <div className="mb-4">
-                <div className="row g-3">
-                  <div className="col-md-6">
-                    <div className="d-flex align-items-center">
-                      <span style={{ fontSize: '1.5rem', marginRight: '10px' }}>📅</span>
-                      <div>
-                        <div className="text-muted small">Date d'ajout</div>
-                        <div style={{ fontWeight: '500' }}>{formatDate(book.addedDate)}</div>
-                      </div>
+                {/* Meta Information */}
+                <div className="grid sm:grid-cols-2 gap-4 mb-6">
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary/10">
+                      <Calendar className="h-5 w-5 text-primary" />
+                    </div>
+                    <div>
+                      <div className="text-sm text-gray-400">Date d&apos;ajout</div>
+                      <div className="font-medium text-gray-700">{formatDate(book.addedDate)}</div>
                     </div>
                   </div>
-                  <div className="col-md-6">
-                    <div className="d-flex align-items-center">
-                      <span style={{ fontSize: '1.5rem', marginRight: '10px' }}>💾</span>
-                      <div>
-                        <div className="text-muted small">Taille du fichier</div>
-                        <div style={{ fontWeight: '500' }}>{formatSize(book.size)}</div>
-                      </div>
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-secondary/10">
+                      <HardDrive className="h-5 w-5 text-secondary" />
+                    </div>
+                    <div>
+                      <div className="text-sm text-gray-400">Taille du fichier</div>
+                      <div className="font-medium text-gray-700">{formatSize(book.size)}</div>
                     </div>
                   </div>
                   {book.lastRead && (
-                    <div className="col-md-6">
-                      <div className="d-flex align-items-center">
-                        <span style={{ fontSize: '1.5rem', marginRight: '10px' }}>👁️</span>
-                        <div>
-                          <div className="text-muted small">Dernière lecture</div>
-                          <div style={{ fontWeight: '500' }}>{formatDate(book.lastRead)}</div>
-                        </div>
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-warning/10">
+                        <Eye className="h-5 w-5 text-warning" />
+                      </div>
+                      <div>
+                        <div className="text-sm text-gray-400">Dernière lecture</div>
+                        <div className="font-medium text-gray-700">{formatDate(book.lastRead)}</div>
                       </div>
                     </div>
                   )}
                 </div>
-              </div>
 
-              <hr />
+                <hr className="border-gray-100 my-6" />
 
-              {/* Description */}
-              <div className="mb-4">
-                <h5 className="mb-3" style={{ color: colors.text }}>Description</h5>
-                <p className="text-muted">
-                  Ce livre fait partie de la catégorie <strong>{category?.name}</strong>.
-                  {category?.description && ` ${category.description}`}
-                </p>
-              </div>
-
-              {/* Features */}
-              <div className="mb-4">
-                <h5 className="mb-3" style={{ color: colors.text }}>Fonctionnalités</h5>
-                <ul className="list-unstyled">
-                  <li className="mb-2">
-                    <span style={{ color: colors.success, marginRight: '8px' }}>✓</span>
-                    Lecture en ligne sans téléchargement
-                  </li>
-                  <li className="mb-2">
-                    <span style={{ color: colors.success, marginRight: '8px' }}>✓</span>
-                    Sauvegarde automatique de la progression
-                  </li>
-                  <li className="mb-2">
-                    <span style={{ color: colors.success, marginRight: '8px' }}>✓</span>
-                    Zoom et navigation faciles
-                  </li>
-                  <li className="mb-2">
-                    <span style={{ color: colors.success, marginRight: '8px' }}>✓</span>
-                    Accessible sur tous vos appareils
-                  </li>
-                </ul>
-              </div>
-
-              {!user && (
-                <div className="alert" style={{ backgroundColor: colors.backgroundDark, border: 'none', borderRadius: '15px' }}>
-                  <h6 style={{ color: colors.primary }}>📚 Profitez de notre bibliothèque complète</h6>
-                  <p className="mb-2">Créez un compte gratuitement pour accéder à tous nos livres chrétiens.</p>
-                  <Link to={ROUTES.REGISTER}>
-                    <Button variant="primary" size="sm">
-                      S'inscrire gratuitement
-                    </Button>
-                  </Link>
+                {/* Description */}
+                <div className="mb-6">
+                  <h5 className="text-lg font-semibold text-gray-900 mb-3">Description</h5>
+                  <p className="text-gray-500 leading-relaxed">
+                    Ce livre fait partie de la catégorie <strong>{category?.name}</strong>.
+                    {category?.description && ` ${category.description}`}
+                  </p>
                 </div>
-              )}
+
+                {/* Features */}
+                <div className="mb-6">
+                  <h5 className="text-lg font-semibold text-gray-900 mb-3">Fonctionnalités</h5>
+                  <ul className="space-y-3">
+                    {[
+                      'Lecture en ligne sans téléchargement',
+                      'Sauvegarde automatique de la progression',
+                      'Zoom et navigation faciles',
+                      'Accessible sur tous vos appareils',
+                    ].map((feature) => (
+                      <li key={feature} className="flex items-center gap-3">
+                        <Check className="h-5 w-5 text-success flex-shrink-0" />
+                        <span className="text-gray-600">{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                {!user && (
+                  <div className="bg-primary/5 rounded-xl p-6">
+                    <div className="flex items-start gap-3 mb-3">
+                      <BookOpen className="h-6 w-6 text-primary flex-shrink-0 mt-0.5" />
+                      <h6 className="text-primary font-semibold">
+                        Profitez de notre bibliothèque complète
+                      </h6>
+                    </div>
+                    <p className="text-gray-600 mb-4 ml-9">
+                      Créez un compte gratuitement pour accéder à tous nos livres.
+                    </p>
+                    <div className="ml-9">
+                      <Link to={ROUTES.REGISTER}>
+                        <Button variant="primary" size="sm">
+                          S&apos;inscrire gratuitement
+                        </Button>
+                      </Link>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
             </Card>
           </div>
         </div>

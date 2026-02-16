@@ -3,6 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getUserReadingProgress, getReadingStats } from '../services/readingProgressService';
 import { getAllBooks } from '../services/bookService';
+import { ArrowLeft, BookOpen, BookMarked, CheckCircle2, BarChart3, Loader2 } from 'lucide-react';
+import { Card } from '../components/ui/Card';
+import Button from '../components/ui/Button';
 
 function MyBooksPage() {
   const navigate = useNavigate();
@@ -82,112 +85,104 @@ function MyBooksPage() {
   const filteredBooks = getFilteredBooks();
 
   return (
-    <div className="min-vh-100" style={{ backgroundColor: '#f8f9fa' }}>
+    <div className="min-h-screen bg-gray-50">
       {/* Navigation */}
-      <nav className="navbar navbar-light bg-white shadow-sm">
-        <div className="container">
+      <nav className="bg-white border-b border-gray-100 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <button
-            className="btn btn-link text-decoration-none"
+            className="inline-flex items-center gap-2 text-primary font-semibold hover:text-primary-dark transition-colors"
             onClick={() => navigate('/')}
-            style={{ color: '#667eea', fontWeight: '600' }}
           >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="me-2">
-              <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-            Retour à l'accueil
+            <ArrowLeft className="w-5 h-5" />
+            Retour à l&apos;accueil
           </button>
-          <span className="navbar-brand mb-0 h5" style={{ color: '#667eea' }}>
-            📚 Mes Livres
+          <span className="text-primary font-semibold text-lg inline-flex items-center gap-2">
+            <BookOpen className="w-5 h-5" />
+            Mes Livres
           </span>
         </div>
       </nav>
 
-      <div className="container py-5">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Statistics Cards */}
         {stats && (
-          <div className="row g-4 mb-5">
-            <div className="col-md-3">
-              <div className="card border-0 shadow-sm h-100" style={{ borderRadius: '15px' }}>
-                <div className="card-body text-center">
-                  <div style={{ fontSize: '2.5rem', marginBottom: '10px' }}>📚</div>
-                  <h3 className="mb-1" style={{ color: '#667eea', fontWeight: '700' }}>
-                    {stats.totalBooks}
-                  </h3>
-                  <p className="text-muted mb-0 small">Total de livres</p>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <Card className="p-5">
+              <div className="flex flex-col items-center text-center">
+                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-3">
+                  <BookOpen className="w-6 h-6 text-primary" />
                 </div>
+                <h3 className="text-2xl font-bold text-primary mb-1">
+                  {stats.totalBooks}
+                </h3>
+                <p className="text-gray-500 text-sm">Total de livres</p>
               </div>
-            </div>
-            <div className="col-md-3">
-              <div className="card border-0 shadow-sm h-100" style={{ borderRadius: '15px' }}>
-                <div className="card-body text-center">
-                  <div style={{ fontSize: '2.5rem', marginBottom: '10px' }}>📖</div>
-                  <h3 className="mb-1" style={{ color: '#f59e0b', fontWeight: '700' }}>
-                    {stats.inProgressBooks}
-                  </h3>
-                  <p className="text-muted mb-0 small">En cours</p>
+            </Card>
+            <Card className="p-5">
+              <div className="flex flex-col items-center text-center">
+                <div className="w-12 h-12 rounded-full bg-warning/10 flex items-center justify-center mb-3">
+                  <BookMarked className="w-6 h-6 text-warning" />
                 </div>
+                <h3 className="text-2xl font-bold text-warning mb-1">
+                  {stats.inProgressBooks}
+                </h3>
+                <p className="text-gray-500 text-sm">En cours</p>
               </div>
-            </div>
-            <div className="col-md-3">
-              <div className="card border-0 shadow-sm h-100" style={{ borderRadius: '15px' }}>
-                <div className="card-body text-center">
-                  <div style={{ fontSize: '2.5rem', marginBottom: '10px' }}>✅</div>
-                  <h3 className="mb-1" style={{ color: '#10b981', fontWeight: '700' }}>
-                    {stats.completedBooks}
-                  </h3>
-                  <p className="text-muted mb-0 small">Terminés</p>
+            </Card>
+            <Card className="p-5">
+              <div className="flex flex-col items-center text-center">
+                <div className="w-12 h-12 rounded-full bg-success/10 flex items-center justify-center mb-3">
+                  <CheckCircle2 className="w-6 h-6 text-success" />
                 </div>
+                <h3 className="text-2xl font-bold text-success mb-1">
+                  {stats.completedBooks}
+                </h3>
+                <p className="text-gray-500 text-sm">Terminés</p>
               </div>
-            </div>
-            <div className="col-md-3">
-              <div className="card border-0 shadow-sm h-100" style={{ borderRadius: '15px' }}>
-                <div className="card-body text-center">
-                  <div style={{ fontSize: '2.5rem', marginBottom: '10px' }}>📊</div>
-                  <h3 className="mb-1" style={{ color: '#8b5cf6', fontWeight: '700' }}>
-                    {stats.averageProgress}%
-                  </h3>
-                  <p className="text-muted mb-0 small">Progression moyenne</p>
+            </Card>
+            <Card className="p-5">
+              <div className="flex flex-col items-center text-center">
+                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-3">
+                  <BarChart3 className="w-6 h-6 text-primary" />
                 </div>
+                <h3 className="text-2xl font-bold text-primary mb-1">
+                  {stats.averageProgress}%
+                </h3>
+                <p className="text-gray-500 text-sm">Progression moyenne</p>
               </div>
-            </div>
+            </Card>
           </div>
         )}
 
         {/* Filter Buttons */}
-        <div className="d-flex gap-2 mb-4">
+        <div className="flex flex-wrap gap-2 mb-6">
           <button
-            className={`btn ${filter === 'all' ? 'btn-primary' : 'btn-outline-secondary'}`}
+            className={`px-4 py-2 rounded-full text-sm font-semibold transition-colors ${
+              filter === 'all'
+                ? 'bg-primary text-white'
+                : 'bg-white text-gray-500 border border-gray-200 hover:bg-gray-50'
+            }`}
             onClick={() => setFilter('all')}
-            style={{
-              borderRadius: '20px',
-              backgroundColor: filter === 'all' ? '#667eea' : 'transparent',
-              borderColor: filter === 'all' ? '#667eea' : '#d1d5db',
-              color: filter === 'all' ? 'white' : '#5f6368'
-            }}
           >
             Tous ({userBooks.length})
           </button>
           <button
-            className={`btn ${filter === 'reading' ? 'btn-primary' : 'btn-outline-secondary'}`}
+            className={`px-4 py-2 rounded-full text-sm font-semibold transition-colors ${
+              filter === 'reading'
+                ? 'bg-warning text-white'
+                : 'bg-white text-gray-500 border border-gray-200 hover:bg-gray-50'
+            }`}
             onClick={() => setFilter('reading')}
-            style={{
-              borderRadius: '20px',
-              backgroundColor: filter === 'reading' ? '#f59e0b' : 'transparent',
-              borderColor: filter === 'reading' ? '#f59e0b' : '#d1d5db',
-              color: filter === 'reading' ? 'white' : '#5f6368'
-            }}
           >
             En cours ({stats?.inProgressBooks || 0})
           </button>
           <button
-            className={`btn ${filter === 'completed' ? 'btn-primary' : 'btn-outline-secondary'}`}
+            className={`px-4 py-2 rounded-full text-sm font-semibold transition-colors ${
+              filter === 'completed'
+                ? 'bg-success text-white'
+                : 'bg-white text-gray-500 border border-gray-200 hover:bg-gray-50'
+            }`}
             onClick={() => setFilter('completed')}
-            style={{
-              borderRadius: '20px',
-              backgroundColor: filter === 'completed' ? '#10b981' : 'transparent',
-              borderColor: filter === 'completed' ? '#10b981' : '#d1d5db',
-              color: filter === 'completed' ? 'white' : '#5f6368'
-            }}
           >
             Terminés ({stats?.completedBooks || 0})
           </button>
@@ -195,106 +190,76 @@ function MyBooksPage() {
 
         {/* Books List */}
         {loading ? (
-          <div className="text-center py-5">
-            <div className="spinner-border" style={{ color: '#667eea' }} role="status">
-              <span className="visually-hidden">Chargement...</span>
-            </div>
+          <div className="flex flex-col items-center justify-center py-20">
+            <Loader2 className="w-10 h-10 text-primary animate-spin" />
           </div>
         ) : filteredBooks.length === 0 ? (
-          <div className="text-center py-5">
-            <div style={{ fontSize: '5rem', marginBottom: '20px' }}>📚</div>
-            <h5 className="text-muted mb-3">
+          <div className="flex flex-col items-center justify-center py-20">
+            <BookOpen className="w-20 h-20 text-gray-300 mb-4" />
+            <h5 className="text-gray-500 mb-4 text-lg">
               {filter === 'all' && 'Aucun livre dans votre bibliothèque'}
               {filter === 'reading' && 'Aucun livre en cours de lecture'}
               {filter === 'completed' && 'Aucun livre terminé'}
             </h5>
-            <button
-              className="btn px-4 py-2"
+            <Button
+              className="rounded-full"
               onClick={() => navigate('/catalog')}
-              style={{
-                backgroundColor: '#667eea',
-                color: 'white',
-                borderRadius: '25px',
-                border: 'none',
-                fontWeight: '600'
-              }}
             >
               Explorer le catalogue
-            </button>
+            </Button>
           </div>
         ) : (
-          <div className="row g-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredBooks.map((book) => (
-              <div key={book.id} className="col-md-6 col-lg-4">
-                <div
-                  className="card border-0 shadow-sm h-100"
-                  style={{ borderRadius: '15px', overflow: 'hidden' }}
-                >
-                  <div className="card-body">
-                    <div className="d-flex justify-content-between align-items-start mb-3">
-                      <h5 className="card-title mb-0" style={{ color: '#2d3748', fontWeight: '600' }}>
-                        {book.title}
-                      </h5>
-                      {book.progress.progress === 100 && (
-                        <span style={{ fontSize: '1.5rem' }}>✅</span>
-                      )}
-                    </div>
-
-                    <p className="text-muted small mb-2">
-                      <strong>Auteur:</strong> {book.author}
-                    </p>
-
-                    {/* Progress Bar */}
-                    <div className="mb-3">
-                      <div className="d-flex justify-content-between align-items-center mb-2">
-                        <small className="text-muted">Progression</small>
-                        <small className="fw-bold" style={{ color: '#667eea' }}>
-                          {book.progress.progress}%
-                        </small>
-                      </div>
-                      <div
-                        className="progress"
-                        style={{ height: '8px', borderRadius: '10px', backgroundColor: '#e5e7eb' }}
-                      >
-                        <div
-                          className="progress-bar"
-                          role="progressbar"
-                          style={{
-                            width: `${book.progress.progress}%`,
-                            backgroundColor: book.progress.progress === 100 ? '#10b981' : '#667eea',
-                            borderRadius: '10px'
-                          }}
-                          aria-valuenow={book.progress.progress}
-                          aria-valuemin="0"
-                          aria-valuemax="100"
-                        ></div>
-                      </div>
-                      <small className="text-muted">
-                        Page {book.progress.currentPage} sur {book.progress.totalPages}
-                      </small>
-                    </div>
-
-                    <p className="text-muted small mb-3">
-                      <strong>Dernière lecture:</strong> {formatDate(book.progress.lastReadAt)}
-                    </p>
-
-                    <button
-                      className="btn w-100"
-                      onClick={() => handleReadBook(book)}
-                      style={{
-                        backgroundColor: '#667eea',
-                        color: 'white',
-                        borderRadius: '20px',
-                        border: 'none',
-                        fontWeight: '600',
-                        padding: '10px'
-                      }}
-                    >
-                      {book.progress.progress === 100 ? 'Relire' : 'Continuer la lecture'}
-                    </button>
+              <Card key={book.id} className="overflow-hidden">
+                <div className="p-5">
+                  <div className="flex justify-between items-start mb-3">
+                    <h5 className="text-gray-800 font-semibold text-base leading-tight">
+                      {book.title}
+                    </h5>
+                    {book.progress.progress === 100 && (
+                      <CheckCircle2 className="w-6 h-6 text-success flex-shrink-0 ml-2" />
+                    )}
                   </div>
+
+                  <p className="text-gray-500 text-sm mb-3">
+                    <span className="font-semibold">Auteur:</span> {book.author}
+                  </p>
+
+                  {/* Progress Bar */}
+                  <div className="mb-3">
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-gray-500 text-sm">Progression</span>
+                      <span className="text-primary font-bold text-sm">
+                        {book.progress.progress}%
+                      </span>
+                    </div>
+                    <div className="h-2 rounded-full bg-gray-200">
+                      <div
+                        className={`h-2 rounded-full transition-all duration-300 ${
+                          book.progress.progress === 100 ? 'bg-success' : 'bg-primary'
+                        }`}
+                        style={{ width: `${book.progress.progress}%` }}
+                      />
+                    </div>
+                    <span className="text-gray-500 text-xs mt-1 block">
+                      Page {book.progress.currentPage} sur {book.progress.totalPages}
+                    </span>
+                  </div>
+
+                  <p className="text-gray-500 text-sm mb-4">
+                    <span className="font-semibold">Dernière lecture:</span> {formatDate(book.progress.lastReadAt)}
+                  </p>
+
+                  <Button
+                    fullWidth
+                    className="rounded-full"
+                    onClick={() => handleReadBook(book)}
+                  >
+                    {book.progress.progress === 100 ? 'Relire' : 'Continuer la lecture'}
+                  </Button>
                 </div>
-              </div>
+              </Card>
             ))}
           </div>
         )}

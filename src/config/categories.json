@@ -1,86 +1,86 @@
 [
   {
-    "id": "bible",
-    "name": "Bible & Commentaires",
+    "id": "fiction",
+    "name": "Roman & Fiction",
     "color": "#8b5cf6",
     "icon": "📖",
-    "description": "Bibles, commentaires bibliques et études de textes sacrés"
+    "description": "Romans, nouvelles et récits de fiction"
   },
   {
-    "id": "theology",
-    "name": "Théologie",
+    "id": "scifi-fantasy",
+    "name": "Science-Fiction & Fantasy",
     "color": "#3b82f6",
-    "icon": "✝️",
-    "description": "Doctrine chrétienne, théologie systématique et études théologiques"
+    "icon": "🚀",
+    "description": "Univers imaginaires, science-fiction et mondes fantastiques"
   },
   {
-    "id": "devotional",
-    "name": "Dévotion & Prière",
+    "id": "christian",
+    "name": "Vie Chrétienne & Spiritualité",
     "color": "#ec4899",
-    "icon": "🙏",
-    "description": "Livres de dévotion, prières et méditations quotidiennes"
-  },
-  {
-    "id": "christian-living",
-    "name": "Vie Chrétienne",
-    "color": "#10b981",
-    "icon": "🌱",
-    "description": "Croissance spirituelle et application pratique de la foi"
+    "icon": "✝️",
+    "description": "Foi chrétienne, spiritualité, méditations et enseignements bibliques"
   },
   {
     "id": "biography",
     "name": "Biographies",
     "color": "#f59e0b",
     "icon": "👤",
-    "description": "Vies de saints, témoignages et histoires inspirantes"
+    "description": "Biographies, autobiographies et témoignages"
   },
   {
-    "id": "family",
-    "name": "Famille & Mariage",
+    "id": "history",
+    "name": "Histoire",
     "color": "#ef4444",
-    "icon": "👨‍👩‍👧‍👦",
-    "description": "Conseil familial, mariage et éducation des enfants"
+    "icon": "🏛️",
+    "description": "Livres d'histoire, essais historiques et documents"
+  },
+  {
+    "id": "science",
+    "name": "Sciences & Technologies",
+    "color": "#10b981",
+    "icon": "🔬",
+    "description": "Sciences, technologies, informatique et innovations"
+  },
+  {
+    "id": "personal-dev",
+    "name": "Développement Personnel",
+    "color": "#06b6d4",
+    "icon": "🌱",
+    "description": "Développement personnel, productivité et bien-être mental"
+  },
+  {
+    "id": "art-culture",
+    "name": "Art & Culture",
+    "color": "#a855f7",
+    "icon": "🎨",
+    "description": "Art, musique, cinéma et culture générale"
   },
   {
     "id": "youth",
     "name": "Jeunesse & Enfants",
-    "color": "#06b6d4",
+    "color": "#14b8a6",
     "icon": "👶",
     "description": "Livres pour enfants, jeunes et adolescents"
   },
   {
-    "id": "worship",
-    "name": "Louange & Adoration",
-    "color": "#a855f7",
-    "icon": "🎵",
-    "description": "Chants, cantiques et ressources pour la louange"
-  },
-  {
-    "id": "mission",
-    "name": "Mission & Évangélisation",
-    "color": "#14b8a6",
-    "icon": "🌍",
-    "description": "Missions, évangélisation et partage de la foi"
-  },
-  {
-    "id": "apologetics",
-    "name": "Apologétique",
-    "color": "#6366f1",
-    "icon": "🛡️",
-    "description": "Défense de la foi et réponses aux questions difficiles"
-  },
-  {
-    "id": "fiction",
-    "name": "Fiction Chrétienne",
+    "id": "wellness",
+    "name": "Cuisine & Bien-être",
     "color": "#84cc16",
-    "icon": "📚",
-    "description": "Romans, nouvelles et récits chrétiens"
+    "icon": "🍳",
+    "description": "Cuisine, santé, sport et bien-être"
+  },
+  {
+    "id": "business",
+    "name": "Business & Économie",
+    "color": "#6366f1",
+    "icon": "💼",
+    "description": "Entrepreneuriat, finance, économie et management"
   },
   {
     "id": "other",
     "name": "Autres",
     "color": "#64748b",
     "icon": "📑",
-    "description": "Autres livres chrétiens ne correspondant pas aux catégories ci-dessus"
+    "description": "Autres livres ne correspondant pas aux catégories ci-dessus"
   }
 ]

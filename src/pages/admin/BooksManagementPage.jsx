@@ -3,6 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { getAllBooks, deleteBook } from '../../services/bookService';
 import categories from '../../config/categories.json';
 import AdminLayout from '../../components/layouts/AdminLayout';
+import { Card } from '../../components/ui/Card';
+import Button from '../../components/ui/Button';
+import Input from '../../components/ui/Input';
+import Select from '../../components/ui/Select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '../../components/ui/Dialog';
+import { toast } from '../../components/ui/Toaster';
+import { PlusCircle, Search, BookOpen, Trash2, Loader2 } from 'lucide-react';
 
 function BooksManagementPage() {
   const [books, setBooks] = useState([]);
@@ -10,6 +17,7 @@ function BooksManagementPage() {
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [deleteDialog, setDeleteDialog] = useState({ open: false, bookId: null, bookName: '' });
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -50,16 +58,20 @@ function BooksManagementPage() {
     return categories.find(cat => cat.id === categoryId) || categories.find(cat => cat.id === 'other');
   };
 
-  const handleDeleteBook = async (bookId, bookName) => {
-    if (window.confirm(`Êtes-vous sûr de vouloir supprimer "${bookName}" ?`)) {
-      try {
-        await deleteBook(bookId);
-        await loadBooks();
-        alert('Livre supprimé avec succès');
-      } catch (error) {
-        console.error('Erreur lors de la suppression:', error);
-        alert('Erreur lors de la suppression du livre');
-      }
+  const handleDeleteBook = (bookId, bookName) => {
+    setDeleteDialog({ open: true, bookId, bookName });
+  };
+
+  const confirmDelete = async () => {
+    try {
+      await deleteBook(deleteDialog.bookId);
+      await loadBooks();
+      toast.success('Livre supprimé avec succès');
+    } catch (error) {
+      console.error('Erreur lors de la suppression:', error);
+      toast.error('Erreur lors de la suppression du livre');
+    } finally {
+      setDeleteDialog({ open: false, bookId: null, bookName: '' });
     }
   };
 
@@ -83,185 +95,183 @@ function BooksManagementPage() {
 
   return (
     <AdminLayout>
-      <div className="p-4">
+      <div className="p-4 md:p-6">
         {/* Header */}
-        <div className="d-flex justify-content-between align-items-center mb-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
           <div>
-            <h2 className="mb-2" style={{ color: '#5f6368', fontWeight: '600' }}>
+            <h2 className="text-2xl font-semibold text-gray-700 mb-1">
               Gestion des livres
             </h2>
-            <p className="text-muted mb-0">
+            <p className="text-gray-500">
               {filteredBooks.length} livre{filteredBooks.length > 1 ? 's' : ''} au total
             </p>
           </div>
-          <button
-            className="btn btn-lg px-4"
+          <Button
             onClick={() => navigate('/admin/add-book')}
-            style={{
-              backgroundColor: '#8b5cf6',
-              color: 'white',
-              borderRadius: '25px',
-              border: 'none'
-            }}
+            size="lg"
+            className="rounded-full"
           >
-            <span className="me-2">➕</span>
+            <PlusCircle className="h-5 w-5" />
             Ajouter un livre
-          </button>
+          </Button>
         </div>
 
         {/* Filters */}
-        <div className="card border-0 shadow-sm mb-4" style={{ borderRadius: '15px' }}>
-          <div className="card-body p-4">
-            <div className="row g-3">
-              {/* Search */}
-              <div className="col-md-6">
-                <label className="form-label fw-semibold small text-muted">Rechercher</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  placeholder="Rechercher un livre..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  style={{ borderRadius: '10px' }}
-                />
+        <Card className="mb-6">
+          <div className="p-4 md:p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="text-xs font-semibold text-gray-500 mb-1.5 block">Rechercher</label>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Input
+                    placeholder="Rechercher un livre..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
               </div>
-
-              {/* Category Filter */}
-              <div className="col-md-6">
-                <label className="form-label fw-semibold small text-muted">Catégorie</label>
-                <select
-                  className="form-select"
+              <div>
+                <label className="text-xs font-semibold text-gray-500 mb-1.5 block">Catégorie</label>
+                <Select
                   value={selectedCategory}
                   onChange={(e) => setSelectedCategory(e.target.value)}
-                  style={{ borderRadius: '10px' }}
                 >
                   <option value="all">Toutes les catégories ({books.length})</option>
                   {categories.map(cat => {
                     const count = books.filter(b => b.category === cat.id).length;
                     return (
                       <option key={cat.id} value={cat.id}>
-                        {cat.icon} {cat.name} ({count})
+                        {cat.name} ({count})
                       </option>
                     );
                   })}
-                </select>
+                </Select>
               </div>
             </div>
           </div>
-        </div>
+        </Card>
 
         {/* Books List */}
         {loading ? (
-          <div className="text-center py-5">
-            <div className="spinner-border" style={{ color: '#8b5cf6' }} role="status">
-              <span className="visually-hidden">Chargement...</span>
-            </div>
+          <div className="flex justify-center py-20">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
         ) : filteredBooks.length === 0 ? (
-          <div className="card border-0 shadow-sm" style={{ borderRadius: '15px' }}>
-            <div className="card-body p-5 text-center">
-              <div style={{ fontSize: '4rem', opacity: 0.5 }} className="mb-3">📚</div>
-              <h5 className="text-muted">
+          <Card>
+            <div className="p-12 text-center">
+              <BookOpen className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-500 mb-1">
                 {searchQuery || selectedCategory !== 'all'
                   ? 'Aucun livre trouvé avec ces critères'
                   : 'Aucun livre dans la bibliothèque'}
-              </h5>
+              </h3>
               {!searchQuery && selectedCategory === 'all' && (
-                <button
-                  className="btn btn-lg mt-3 px-4"
+                <Button
+                  className="mt-4 rounded-full"
+                  size="lg"
                   onClick={() => navigate('/admin/add-book')}
-                  style={{
-                    backgroundColor: '#8b5cf6',
-                    color: 'white',
-                    borderRadius: '25px',
-                    border: 'none'
-                  }}
                 >
                   Ajouter votre premier livre
-                </button>
+                </Button>
               )}
             </div>
-          </div>
+          </Card>
         ) : (
-          <div className="card border-0 shadow-sm" style={{ borderRadius: '15px' }}>
-            <div className="table-responsive">
-              <table className="table table-hover mb-0">
-                <thead style={{ backgroundColor: '#f8f9fa' }}>
+          <Card>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-50">
                   <tr>
-                    <th className="border-0 py-3 px-4" style={{ borderRadius: '15px 0 0 0' }}>Livre</th>
-                    <th className="border-0 py-3">Catégorie</th>
-                    <th className="border-0 py-3">Taille</th>
-                    <th className="border-0 py-3">Date d'ajout</th>
-                    <th className="border-0 py-3 text-end px-4" style={{ borderRadius: '0 15px 0 0' }}>Actions</th>
+                    <th className="text-left font-semibold text-gray-600 py-3 px-4 first:rounded-tl-xl">Livre</th>
+                    <th className="text-left font-semibold text-gray-600 py-3 px-4">Catégorie</th>
+                    <th className="text-left font-semibold text-gray-600 py-3 px-4">Taille</th>
+                    <th className="text-left font-semibold text-gray-600 py-3 px-4">Date d&apos;ajout</th>
+                    <th className="text-right font-semibold text-gray-600 py-3 px-4 last:rounded-tr-xl">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredBooks.map((book) => (
-                    <tr key={book.id}>
+                    <tr key={book.id} className="border-t border-gray-100 hover:bg-gray-50 transition-colors">
                       <td className="px-4 py-3">
-                        <div className="d-flex align-items-center">
-                          <div
-                            className="me-3 d-flex align-items-center justify-content-center"
-                            style={{
-                              width: '40px',
-                              height: '40px',
-                              backgroundColor: '#f3f4f6',
-                              borderRadius: '8px'
-                            }}
-                          >
-                            <span style={{ fontSize: '1.5rem' }}>📖</span>
+                        <div className="flex items-center gap-3">
+                          <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-gray-100 shrink-0">
+                            <BookOpen className="h-5 w-5 text-gray-500" />
                           </div>
-                          <div>
-                            <div className="fw-semibold" style={{ color: '#5f6368' }}>
+                          <div className="min-w-0">
+                            <div className="font-semibold text-gray-700 truncate">
                               {book.name}
                             </div>
                             {book.lastRead && (
-                              <small className="text-muted">
+                              <div className="text-xs text-gray-400">
                                 Dernière lecture: {formatDate(book.lastRead)}
-                              </small>
+                              </div>
                             )}
                           </div>
                         </div>
                       </td>
-                      <td className="py-3">
+                      <td className="px-4 py-3">
                         <span
-                          className="badge"
-                          style={{
-                            backgroundColor: getCategoryInfo(book.category).color,
-                            color: 'white',
-                            fontSize: '0.75rem',
-                            padding: '6px 12px',
-                            borderRadius: '12px'
-                          }}
+                          className="inline-flex items-center text-xs font-medium px-3 py-1 rounded-lg text-white"
+                          style={{ backgroundColor: getCategoryInfo(book.category).color }}
                         >
-                          {getCategoryInfo(book.category).icon} {getCategoryInfo(book.category).name}
+                          {getCategoryInfo(book.category).name}
                         </span>
                       </td>
-                      <td className="py-3 text-muted">
+                      <td className="px-4 py-3 text-gray-500">
                         {formatSize(book.size)}
                       </td>
-                      <td className="py-3 text-muted">
+                      <td className="px-4 py-3 text-gray-500">
                         {formatDate(book.addedDate)}
                       </td>
-                      <td className="py-3 text-end px-4">
-                        <button
-                          className="btn btn-sm btn-outline-danger"
+                      <td className="px-4 py-3 text-right">
+                        <Button
+                          variant="danger"
+                          size="sm"
                           onClick={() => handleDeleteBook(book.id, book.name)}
-                          style={{ borderRadius: '10px' }}
                         >
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                          </svg>
-                          <span className="ms-2">Supprimer</span>
-                        </button>
+                          <Trash2 className="h-4 w-4" />
+                          Supprimer
+                        </Button>
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
-          </div>
+          </Card>
         )}
+
+        {/* Delete Confirmation Dialog */}
+        <Dialog open={deleteDialog.open} onOpenChange={(open) => {
+          if (!open) setDeleteDialog({ open: false, bookId: null, bookName: '' });
+        }}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Confirmer la suppression</DialogTitle>
+              <DialogDescription>
+                Êtes-vous sûr de vouloir supprimer &laquo; {deleteDialog.bookName} &raquo; ?
+                Cette action est irréversible.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button
+                variant="ghost"
+                onClick={() => setDeleteDialog({ open: false, bookId: null, bookName: '' })}
+              >
+                Annuler
+              </Button>
+              <Button
+                variant="danger"
+                onClick={confirmDelete}
+              >
+                <Trash2 className="h-4 w-4" />
+                Supprimer
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </AdminLayout>
   );

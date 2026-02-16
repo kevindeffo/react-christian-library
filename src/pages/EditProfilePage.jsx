@@ -1,6 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { ArrowLeft } from 'lucide-react';
+import { Card, CardContent } from '../components/ui/Card';
+import Input from '../components/ui/Input';
+import Label from '../components/ui/Label';
+import Button from '../components/ui/Button';
+import { toast } from '../components/ui/Toaster';
 
 function EditProfilePage() {
   const navigate = useNavigate();
@@ -14,7 +20,6 @@ function EditProfilePage() {
   });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
-  const [successMessage, setSuccessMessage] = useState('');
 
   useEffect(() => {
     if (!user) {
@@ -82,7 +87,6 @@ function EditProfilePage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setSuccessMessage('');
 
     if (!validateForm()) {
       return;
@@ -103,7 +107,7 @@ function EditProfilePage() {
 
       updateUser(updatedUser);
 
-      setSuccessMessage('Profil mis à jour avec succès !');
+      toast.success('Profil mis à jour avec succès !');
 
       // Clear password fields
       setFormData(prev => ({
@@ -118,7 +122,7 @@ function EditProfilePage() {
         navigate('/profile');
       }, 1500);
     } catch (error) {
-      setErrors({ general: 'Une erreur est survenue lors de la mise à jour du profil' });
+      toast.error('Une erreur est survenue lors de la mise à jour du profil');
     } finally {
       setLoading(false);
     }
@@ -127,234 +131,169 @@ function EditProfilePage() {
   if (!user) return null;
 
   return (
-    <div className="min-vh-100" style={{ backgroundColor: '#f8f9fa' }}>
+    <div className="min-h-screen bg-gray-50">
       {/* Navigation */}
-      <nav className="navbar navbar-light bg-white shadow-sm">
-        <div className="container">
+      <nav className="bg-white border-b border-gray-100 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <button
-            className="btn btn-link text-decoration-none"
+            className="inline-flex items-center gap-2 text-primary font-semibold hover:text-primary-dark transition-colors"
             onClick={() => navigate('/profile')}
-            style={{ color: '#667eea', fontWeight: '600' }}
           >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="me-2">
-              <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
+            <ArrowLeft className="w-5 h-5" />
             Retour au profil
           </button>
-          <span className="navbar-brand mb-0 h5" style={{ color: '#667eea' }}>
+          <span className="text-primary font-semibold text-lg">
             Modifier le profil
           </span>
         </div>
       </nav>
 
-      <div className="container py-5">
-        <div className="row justify-content-center">
-          <div className="col-md-8 col-lg-6">
-            {/* Edit Profile Form */}
-            <div className="card border-0 shadow-sm" style={{ borderRadius: '20px' }}>
-              <div className="card-body p-4">
-                {/* Avatar Section */}
-                <div className="text-center mb-4">
-                  <div
-                    className="d-inline-flex align-items-center justify-content-center mx-auto mb-3"
-                    style={{
-                      width: '80px',
-                      height: '80px',
-                      borderRadius: '50%',
-                      backgroundColor: '#667eea',
-                      color: 'white',
-                      fontSize: '2.5rem',
-                      fontWeight: '700'
-                    }}
-                  >
-                    {user.name.charAt(0).toUpperCase()}
-                  </div>
-                </div>
-
-                {/* Success Message */}
-                {successMessage && (
-                  <div className="alert alert-success" role="alert" style={{ borderRadius: '12px' }}>
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="me-2">
-                      <path d="M22 11.08V12C21.9988 14.1564 21.3005 16.2547 20.0093 17.9818C18.7182 19.709 16.9033 20.9725 14.8354 21.5839C12.7674 22.1953 10.5573 22.1219 8.53447 21.3746C6.51168 20.6273 4.78465 19.2461 3.61096 17.4371C2.43727 15.628 1.87979 13.4881 2.02168 11.3363C2.16356 9.18455 2.99721 7.13631 4.39828 5.49706C5.79935 3.85781 7.69279 2.71537 9.79619 2.24013C11.8996 1.7649 14.1003 1.98232 16.07 2.85999" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                      <path d="M22 4L12 14.01L9 11.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                    {successMessage}
-                  </div>
-                )}
-
-                {/* General Error */}
-                {errors.general && (
-                  <div className="alert alert-danger" role="alert" style={{ borderRadius: '12px' }}>
-                    {errors.general}
-                  </div>
-                )}
-
-                <form onSubmit={handleSubmit}>
-                  {/* Personal Information Section */}
-                  <div className="mb-4">
-                    <h5 style={{ color: '#667eea', fontWeight: '600', marginBottom: '20px' }}>
-                      Informations personnelles
-                    </h5>
-
-                    {/* Name Field */}
-                    <div className="mb-3">
-                      <label htmlFor="name" className="form-label" style={{ fontWeight: '600', color: '#2d3748' }}>
-                        Nom complet
-                      </label>
-                      <input
-                        type="text"
-                        className={`form-control ${errors.name ? 'is-invalid' : ''}`}
-                        id="name"
-                        name="name"
-                        value={formData.name}
-                        onChange={handleChange}
-                        style={{
-                          borderRadius: '12px',
-                          padding: '12px 16px',
-                          border: '2px solid #e5e7eb'
-                        }}
-                      />
-                      {errors.name && <div className="invalid-feedback">{errors.name}</div>}
-                    </div>
-
-                    {/* Email Field */}
-                    <div className="mb-3">
-                      <label htmlFor="email" className="form-label" style={{ fontWeight: '600', color: '#2d3748' }}>
-                        Adresse e-mail
-                      </label>
-                      <input
-                        type="email"
-                        className={`form-control ${errors.email ? 'is-invalid' : ''}`}
-                        id="email"
-                        name="email"
-                        value={formData.email}
-                        onChange={handleChange}
-                        style={{
-                          borderRadius: '12px',
-                          padding: '12px 16px',
-                          border: '2px solid #e5e7eb'
-                        }}
-                      />
-                      {errors.email && <div className="invalid-feedback">{errors.email}</div>}
-                    </div>
-                  </div>
-
-                  {/* Change Password Section */}
-                  <hr className="my-4" />
-                  <div className="mb-4">
-                    <h5 style={{ color: '#667eea', fontWeight: '600', marginBottom: '20px' }}>
-                      Changer le mot de passe
-                    </h5>
-                    <p className="text-muted small mb-3">
-                      Laissez vide si vous ne souhaitez pas changer votre mot de passe
-                    </p>
-
-                    {/* Current Password */}
-                    <div className="mb-3">
-                      <label htmlFor="currentPassword" className="form-label" style={{ fontWeight: '600', color: '#2d3748' }}>
-                        Mot de passe actuel
-                      </label>
-                      <input
-                        type="password"
-                        className={`form-control ${errors.currentPassword ? 'is-invalid' : ''}`}
-                        id="currentPassword"
-                        name="currentPassword"
-                        value={formData.currentPassword}
-                        onChange={handleChange}
-                        style={{
-                          borderRadius: '12px',
-                          padding: '12px 16px',
-                          border: '2px solid #e5e7eb'
-                        }}
-                      />
-                      {errors.currentPassword && <div className="invalid-feedback">{errors.currentPassword}</div>}
-                    </div>
-
-                    {/* New Password */}
-                    <div className="mb-3">
-                      <label htmlFor="newPassword" className="form-label" style={{ fontWeight: '600', color: '#2d3748' }}>
-                        Nouveau mot de passe
-                      </label>
-                      <input
-                        type="password"
-                        className={`form-control ${errors.newPassword ? 'is-invalid' : ''}`}
-                        id="newPassword"
-                        name="newPassword"
-                        value={formData.newPassword}
-                        onChange={handleChange}
-                        style={{
-                          borderRadius: '12px',
-                          padding: '12px 16px',
-                          border: '2px solid #e5e7eb'
-                        }}
-                      />
-                      {errors.newPassword && <div className="invalid-feedback">{errors.newPassword}</div>}
-                    </div>
-
-                    {/* Confirm Password */}
-                    <div className="mb-3">
-                      <label htmlFor="confirmPassword" className="form-label" style={{ fontWeight: '600', color: '#2d3748' }}>
-                        Confirmer le mot de passe
-                      </label>
-                      <input
-                        type="password"
-                        className={`form-control ${errors.confirmPassword ? 'is-invalid' : ''}`}
-                        id="confirmPassword"
-                        name="confirmPassword"
-                        value={formData.confirmPassword}
-                        onChange={handleChange}
-                        style={{
-                          borderRadius: '12px',
-                          padding: '12px 16px',
-                          border: '2px solid #e5e7eb'
-                        }}
-                      />
-                      {errors.confirmPassword && <div className="invalid-feedback">{errors.confirmPassword}</div>}
-                    </div>
-                  </div>
-
-                  {/* Action Buttons */}
-                  <div className="d-grid gap-2">
-                    <button
-                      type="submit"
-                      className="btn py-3"
-                      disabled={loading}
-                      style={{
-                        backgroundColor: '#667eea',
-                        color: 'white',
-                        borderRadius: '25px',
-                        border: 'none',
-                        fontWeight: '600',
-                        fontSize: '1rem'
-                      }}
-                    >
-                      {loading ? (
-                        <>
-                          <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                          Enregistrement...
-                        </>
-                      ) : (
-                        'Enregistrer les modifications'
-                      )}
-                    </button>
-                    <button
-                      type="button"
-                      className="btn btn-outline-secondary py-3"
-                      onClick={() => navigate('/profile')}
-                      style={{
-                        borderRadius: '25px',
-                        borderColor: '#d1d5db',
-                        fontWeight: '600'
-                      }}
-                    >
-                      Annuler
-                    </button>
-                  </div>
-                </form>
+      <div className="max-w-lg mx-auto px-4 py-8">
+        <Card>
+          <CardContent className="py-8">
+            {/* Avatar Section */}
+            <div className="flex justify-center mb-6">
+              <div className="w-20 h-20 rounded-full bg-primary text-white flex items-center justify-center text-3xl font-bold">
+                {user.name.charAt(0).toUpperCase()}
               </div>
             </div>
-          </div>
-        </div>
+
+            <form onSubmit={handleSubmit}>
+              {/* Personal Information Section */}
+              <div className="mb-6">
+                <h5 className="text-primary font-semibold mb-4">
+                  Informations personnelles
+                </h5>
+
+                {/* Name Field */}
+                <div className="mb-4">
+                  <Label htmlFor="name" className="mb-2 block">
+                    Nom complet
+                  </Label>
+                  <Input
+                    id="name"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    error={!!errors.name}
+                    className="h-12"
+                  />
+                  {errors.name && (
+                    <p className="text-danger text-sm mt-1">{errors.name}</p>
+                  )}
+                </div>
+
+                {/* Email Field */}
+                <div className="mb-4">
+                  <Label htmlFor="email" className="mb-2 block">
+                    Adresse e-mail
+                  </Label>
+                  <Input
+                    type="email"
+                    id="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    error={!!errors.email}
+                    className="h-12"
+                  />
+                  {errors.email && (
+                    <p className="text-danger text-sm mt-1">{errors.email}</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Change Password Section */}
+              <hr className="border-gray-100 my-6" />
+              <div className="mb-6">
+                <h5 className="text-primary font-semibold mb-2">
+                  Changer le mot de passe
+                </h5>
+                <p className="text-gray-500 text-sm mb-4">
+                  Laissez vide si vous ne souhaitez pas changer votre mot de passe
+                </p>
+
+                {/* Current Password */}
+                <div className="mb-4">
+                  <Label htmlFor="currentPassword" className="mb-2 block">
+                    Mot de passe actuel
+                  </Label>
+                  <Input
+                    type="password"
+                    id="currentPassword"
+                    name="currentPassword"
+                    value={formData.currentPassword}
+                    onChange={handleChange}
+                    error={!!errors.currentPassword}
+                    className="h-12"
+                  />
+                  {errors.currentPassword && (
+                    <p className="text-danger text-sm mt-1">{errors.currentPassword}</p>
+                  )}
+                </div>
+
+                {/* New Password */}
+                <div className="mb-4">
+                  <Label htmlFor="newPassword" className="mb-2 block">
+                    Nouveau mot de passe
+                  </Label>
+                  <Input
+                    type="password"
+                    id="newPassword"
+                    name="newPassword"
+                    value={formData.newPassword}
+                    onChange={handleChange}
+                    error={!!errors.newPassword}
+                    className="h-12"
+                  />
+                  {errors.newPassword && (
+                    <p className="text-danger text-sm mt-1">{errors.newPassword}</p>
+                  )}
+                </div>
+
+                {/* Confirm Password */}
+                <div className="mb-4">
+                  <Label htmlFor="confirmPassword" className="mb-2 block">
+                    Confirmer le mot de passe
+                  </Label>
+                  <Input
+                    type="password"
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    value={formData.confirmPassword}
+                    onChange={handleChange}
+                    error={!!errors.confirmPassword}
+                    className="h-12"
+                  />
+                  {errors.confirmPassword && (
+                    <p className="text-danger text-sm mt-1">{errors.confirmPassword}</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="space-y-3">
+                <Button
+                  type="submit"
+                  fullWidth
+                  loading={loading}
+                  className="rounded-full h-12 text-base"
+                >
+                  Enregistrer les modifications
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  fullWidth
+                  className="rounded-full h-12"
+                  onClick={() => navigate('/profile')}
+                >
+                  Annuler
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

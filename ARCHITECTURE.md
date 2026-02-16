@@ -1,4 +1,4 @@
-# Architecture du Projet - Bibliothèque Chrétienne
+# Architecture du Projet - BiblioHub
 
 ## 📁 Structure des Dossiers
 
@@ -171,7 +171,7 @@ import Badge from '../components/ui/Badge';
 import CategoryBadge from '../components/shared/CategoryBadge';
 
 <CategoryBadge
-  categoryId="bible"
+  categoryId="fiction"
   showIcon={true}
   showName={true}
   size="md"

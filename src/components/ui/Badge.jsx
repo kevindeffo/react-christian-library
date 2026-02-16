@@ -1,50 +1,59 @@
-import { borderRadius } from '../../config/theme';
+import PropTypes from 'prop-types';
+import { cva } from 'class-variance-authority';
+import { cn } from '../../lib/utils';
 
-/**
- * Reusable Badge component
- * @param {object} props - Component props
- */
+const badgeVariants = cva(
+  'inline-flex items-center rounded-lg font-medium',
+  {
+    variants: {
+      variant: {
+        primary: 'bg-primary text-white',
+        secondary: 'bg-secondary text-white',
+        success: 'bg-success text-white',
+        danger: 'bg-danger text-white',
+        warning: 'bg-warning text-white',
+        outline: 'border border-current bg-transparent',
+        custom: '',
+      },
+      size: {
+        sm: 'text-xs px-2.5 py-0.5',
+        md: 'text-xs px-3 py-1',
+        lg: 'text-sm px-4 py-1.5',
+      },
+    },
+    defaultVariants: {
+      variant: 'primary',
+      size: 'md',
+    },
+  }
+);
+
 const Badge = ({
   children,
-  color = '#8b5cf6',
-  textColor = 'white',
+  variant = 'primary',
   size = 'md',
-  rounded = true,
-  className = '',
-  style = {},
+  className,
+  style,
   ...rest
 }) => {
-  const sizes = {
-    sm: {
-      fontSize: '0.7rem',
-      padding: '4px 10px',
-    },
-    md: {
-      fontSize: '0.75rem',
-      padding: '6px 12px',
-    },
-    lg: {
-      fontSize: '0.875rem',
-      padding: '8px 16px',
-    },
-  };
-
-  const badgeStyle = {
-    backgroundColor: color,
-    color: textColor,
-    ...sizes[size],
-    borderRadius: rounded ? borderRadius.md : borderRadius.sm,
-    display: 'inline-block',
-    fontWeight: '500',
-    ...style,
-  };
-
   return (
-    <span className={`badge ${className}`} style={badgeStyle} {...rest}>
+    <span
+      className={cn(badgeVariants({ variant, size }), className)}
+      style={style}
+      {...rest}
+    >
       {children}
     </span>
   );
 };
 
+Badge.propTypes = {
+  children: PropTypes.node,
+  variant: PropTypes.oneOf(['primary', 'secondary', 'success', 'danger', 'warning', 'outline', 'custom']),
+  size: PropTypes.oneOf(['sm', 'md', 'lg']),
+  className: PropTypes.string,
+  style: PropTypes.object,
+};
 
+export { badgeVariants };
 export default Badge;

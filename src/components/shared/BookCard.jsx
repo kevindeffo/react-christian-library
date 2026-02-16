@@ -1,12 +1,9 @@
-import Card from '../ui/Card';
+import { Trash2, BookOpen } from 'lucide-react';
+import { Card } from '../ui/Card';
 import CategoryBadge from './CategoryBadge';
 import { formatDate, formatSize } from '../../utils/formatters';
-import { colors } from '../../config/theme';
+import { cn } from '../../lib/utils';
 
-/**
- * Book Card component
- * Displays a book with its information
- */
 const BookCard = ({
   book,
   onOpen,
@@ -15,7 +12,6 @@ const BookCard = ({
   className = '',
 }) => {
   const handleClick = (e) => {
-    // Don't trigger card click if clicking on delete button
     if (e.target.closest('.delete-button')) return;
     if (onOpen) onOpen(book);
   };
@@ -27,63 +23,21 @@ const BookCard = ({
 
   return (
     <Card
-      className={className}
-      padding="lg"
-      shadow="sm"
+      className={cn('h-full', className)}
       hoverable
       onClick={handleClick}
-      style={{ height: '100%' }}
     >
-      <div className="d-flex flex-column h-100">
+      <div className="p-6 flex flex-col h-full">
         {/* Header with icon and delete button */}
-        <div className="d-flex justify-content-between align-items-start mb-3">
-          <div className="flex-grow-1">
-            <svg
-              width="50"
-              height="50"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-              className="mb-3"
-            >
-              <path
-                d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"
-                stroke={colors.primary}
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <path
-                d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"
-                stroke={colors.primary}
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </div>
+        <div className="flex justify-between items-start mb-3">
+          <BookOpen className="w-10 h-10 text-primary" />
           {showActions && onDelete && (
             <button
-              className="btn btn-sm p-0 delete-button"
+              className="delete-button p-1.5 rounded-lg text-gray-400 hover:text-danger hover:bg-red-50 transition-colors"
               onClick={handleDelete}
-              style={{ color: colors.danger }}
-              title="Supprimer"
+              aria-label="Supprimer"
             >
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
+              <Trash2 className="w-4 h-4" />
             </button>
           )}
         </div>
@@ -94,38 +48,26 @@ const BookCard = ({
         </div>
 
         {/* Book Title */}
-        <h6
-          className="card-title mb-2"
-          style={{
-            color: colors.text,
-            fontSize: '0.95rem',
-            fontWeight: '500',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            display: '-webkit-box',
-            WebkitLineClamp: 2,
-            WebkitBoxOrient: 'vertical',
-          }}
-        >
+        <h6 className="text-sm font-medium text-gray-700 line-clamp-2 mb-2">
           {book.name}
         </h6>
 
         {/* Book Details */}
-        <div className="mt-auto">
-          <p className="text-muted small mb-1">
-            <strong>Taille:</strong> {formatSize(book.size)}
+        <div className="mt-auto space-y-1">
+          <p className="text-xs text-gray-500">
+            <span className="font-medium">Taille:</span> {formatSize(book.size)}
           </p>
-          <p className="text-muted small mb-1">
-            <strong>Ajouté:</strong> {formatDate(book.addedDate)}
+          <p className="text-xs text-gray-500">
+            <span className="font-medium">Ajouté:</span> {formatDate(book.addedDate)}
           </p>
           {book.lastRead && (
-            <p className="text-muted small mb-0">
-              <strong>Dernière lecture:</strong> {formatDate(book.lastRead)}
+            <p className="text-xs text-gray-500">
+              <span className="font-medium">Dernière lecture:</span> {formatDate(book.lastRead)}
             </p>
           )}
           {book.currentPage && book.currentPage > 1 && (
-            <p className="text-muted small mb-0">
-              <strong>Page:</strong> {book.currentPage}
+            <p className="text-xs text-gray-500">
+              <span className="font-medium">Page:</span> {book.currentPage}
             </p>
           )}
         </div>
@@ -133,6 +75,5 @@ const BookCard = ({
     </Card>
   );
 };
-
 
 export default BookCard;

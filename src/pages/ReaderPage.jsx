@@ -5,6 +5,8 @@ import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
 import { useAuth } from '../context/AuthContext';
 import { saveReadingProgress, getReadingProgress } from '../services/readingProgressService';
+import { ArrowLeft, ZoomIn, ZoomOut, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
+import Button from '../components/ui/Button';
 
 // Configuration de PDF.js worker pour la version bundled avec react-pdf
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
@@ -112,74 +114,46 @@ function ReaderPage() {
   }
 
   return (
-    <div className="min-vh-100" style={{ backgroundColor: '#f5f7fa' }}>
+    <div className="min-h-screen bg-gray-50">
       {/* Navbar */}
-      <nav className="navbar navbar-light bg-white shadow-sm sticky-top">
-        <div className="container-fluid px-4">
-          <div className="d-flex align-items-center">
+      <nav className="bg-white border-b border-gray-100 shadow-sm sticky top-0 z-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
+          <div className="flex items-center gap-3">
             <button
-              className="btn btn-link text-decoration-none me-3"
+              className="text-gray-500 hover:text-gray-700 transition-colors p-1"
               onClick={handleClose}
-              style={{ color: '#5f6368' }}
             >
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
+              <ArrowLeft className="w-6 h-6" />
             </button>
-            <span className="navbar-brand mb-0 h5" style={{ color: '#5f6368' }}>{bookName}</span>
+            <span className="text-gray-600 font-semibold text-base truncate max-w-xs sm:max-w-md">
+              {bookName}
+            </span>
           </div>
 
-          <div className="d-flex align-items-center gap-3">
+          <div className="flex items-center gap-4">
             {/* Zoom Controls */}
-            <div className="btn-group" role="group">
+            <div className="inline-flex items-center bg-white border border-gray-200 rounded-lg overflow-hidden">
               <button
-                className="btn btn-sm"
+                className="px-2.5 py-1.5 text-gray-500 hover:bg-gray-50 transition-colors disabled:opacity-40"
                 onClick={zoomOut}
                 disabled={scale <= 0.6}
-                style={{
-                  backgroundColor: 'white',
-                  color: '#5f6368',
-                  border: '1px solid #e0e0e0',
-                  borderRadius: '8px 0 0 8px'
-                }}
               >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M5 12H19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
+                <ZoomOut className="w-4 h-4" />
               </button>
-              <button
-                className="btn btn-sm"
-                style={{
-                  backgroundColor: 'white',
-                  color: '#5f6368',
-                  border: '1px solid #e0e0e0',
-                  borderLeft: 'none',
-                  borderRight: 'none',
-                  pointerEvents: 'none',
-                  minWidth: '60px'
-                }}
-              >
+              <span className="px-3 py-1.5 text-sm text-gray-600 border-x border-gray-200 min-w-[52px] text-center select-none">
                 {Math.round(scale * 100)}%
-              </button>
+              </span>
               <button
-                className="btn btn-sm"
+                className="px-2.5 py-1.5 text-gray-500 hover:bg-gray-50 transition-colors disabled:opacity-40"
                 onClick={zoomIn}
                 disabled={scale >= 2.0}
-                style={{
-                  backgroundColor: 'white',
-                  color: '#5f6368',
-                  border: '1px solid #e0e0e0',
-                  borderRadius: '0 8px 8px 0'
-                }}
               >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M12 5V19M5 12H19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
+                <ZoomIn className="w-4 h-4" />
               </button>
             </div>
 
             {/* Page Info */}
-            <span className="text-muted small">
+            <span className="text-gray-500 text-sm hidden sm:inline">
               Page {pageNumber} / {numPages || '...'}
             </span>
           </div>
@@ -187,102 +161,72 @@ function ReaderPage() {
       </nav>
 
       {/* Reader Content */}
-      <div className="container-fluid py-4">
-        <div className="row justify-content-center">
-          <div className="col-12 col-lg-10 col-xl-8">
-            <div className="card border-0 shadow-sm mb-4" style={{ borderRadius: '20px', backgroundColor: 'white' }}>
-              <div className="card-body p-0">
-                <div className="d-flex justify-content-center p-4" style={{
-                  overflow: 'auto',
-                  userSelect: 'none',
-                  WebkitUserSelect: 'none',
-                  MozUserSelect: 'none',
-                  msUserSelect: 'none'
-                }}>
-                  {error ? (
-                    <div className="text-center py-5">
-                      <svg width="80" height="80" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="mb-3">
-                        <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="#d32f2f" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                        <path d="M2 17L12 22L22 17" stroke="#d32f2f" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                        <path d="M2 12L12 17L22 12" stroke="#d32f2f" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
-                      <p className="text-danger mb-3">{error}</p>
-                      <button
-                        className="btn px-4"
-                        onClick={handleClose}
-                        style={{
-                          backgroundColor: '#9fa8da',
-                          color: 'white',
-                          borderRadius: '50px',
-                          border: 'none'
-                        }}
-                      >
-                        Retour à l'accueil
-                      </button>
-                    </div>
-                  ) : (
-                    <Document
-                      file={bookFile}
-                      onLoadSuccess={onDocumentLoadSuccess}
-                      onLoadError={onDocumentLoadError}
-                      loading={
-                        <div className="text-center py-5">
-                          <div className="spinner-border" style={{ color: '#9fa8da' }} role="status">
-                            <span className="visually-hidden">Chargement...</span>
-                          </div>
-                          <p className="mt-3 text-muted">Chargement du livre...</p>
-                        </div>
-                      }
-                    >
-                      <Page
-                        pageNumber={pageNumber}
-                        scale={scale}
-                      />
-                    </Document>
-                  )}
-                </div>
+      <div className="max-w-5xl mx-auto px-4 py-6">
+        <div className="rounded-xl border border-gray-100 bg-white shadow-card mb-6 overflow-hidden">
+          <div
+            className="flex justify-center p-4 overflow-auto"
+            style={{
+              userSelect: 'none',
+              WebkitUserSelect: 'none',
+              MozUserSelect: 'none',
+              msUserSelect: 'none'
+            }}
+          >
+            {error ? (
+              <div className="flex flex-col items-center py-16">
+                <p className="text-danger mb-4 text-center">{error}</p>
+                <Button
+                  variant="ghost"
+                  className="rounded-full"
+                  onClick={handleClose}
+                >
+                  Retour à l&apos;accueil
+                </Button>
               </div>
-            </div>
-
-            {/* Navigation Controls */}
-            <div className="d-flex justify-content-center gap-3 pb-4">
-              <button
-                className="btn btn-lg px-4"
-                onClick={goToPreviousPage}
-                disabled={pageNumber <= 1}
-                style={{
-                  backgroundColor: '#9fa8da',
-                  color: 'white',
-                  borderRadius: '50px',
-                  border: 'none',
-                  opacity: pageNumber <= 1 ? 0.5 : 1
-                }}
+            ) : (
+              <Document
+                file={bookFile}
+                onLoadSuccess={onDocumentLoadSuccess}
+                onLoadError={onDocumentLoadError}
+                loading={
+                  <div className="flex flex-col items-center py-16">
+                    <Loader2 className="w-10 h-10 text-primary animate-spin mb-3" />
+                    <p className="text-gray-500">Chargement du livre...</p>
+                  </div>
+                }
               >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="me-2">
-                  <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-                Précédent
-              </button>
-
-              <button
-                className="btn btn-lg px-4"
-                onClick={goToNextPage}
-                disabled={pageNumber >= numPages}
-                style={{
-                  backgroundColor: '#9fa8da',
-                  color: 'white',
-                  borderRadius: '50px',
-                  border: 'none',
-                  opacity: pageNumber >= numPages ? 0.5 : 1
-                }}
-              >
-                Suivant
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="ms-2">
-                  <path d="M9 18L15 12L9 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </button>
-            </div>
+                <Page
+                  pageNumber={pageNumber}
+                  scale={scale}
+                />
+              </Document>
+            )}
           </div>
+        </div>
+
+        {/* Navigation Controls */}
+        <div className="flex justify-center items-center gap-3 pb-6">
+          <Button
+            className="rounded-xl"
+            onClick={goToPreviousPage}
+            disabled={pageNumber <= 1}
+          >
+            <ChevronLeft className="w-5 h-5" />
+            Précédent
+          </Button>
+
+          <span className="text-gray-500 text-sm sm:hidden">
+            {pageNumber} / {numPages || '...'}
+          </span>
+
+          <Button
+            className="rounded-xl"
+            onClick={goToNextPage}
+            disabled={pageNumber >= numPages}
+          >
+            Suivant
+            <ChevronRight className="w-5 h-5" />
+          </Button>
         </div>
       </div>
     </div>

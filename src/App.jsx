@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/shared/ProtectedRoute';
+import Toaster from './components/ui/Toaster';
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
@@ -14,8 +15,6 @@ import DashboardPage from './pages/admin/DashboardPage';
 import BooksManagementPage from './pages/admin/BooksManagementPage';
 import AddBookPage from './pages/admin/AddBookPage';
 import CategoriesManagementPage from './pages/admin/CategoriesManagementPage';
-import 'bootstrap/dist/css/bootstrap.min.css';
-import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import './App.css';
 
 function App() {
@@ -107,6 +106,7 @@ function App() {
             }
           />
         </Routes>
+        <Toaster />
       </AuthProvider>
     </Router>
   );

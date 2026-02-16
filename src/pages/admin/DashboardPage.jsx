@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { getAllBooks } from '../../services/bookService';
 import categories from '../../config/categories.json';
 import AdminLayout from '../../components/layouts/AdminLayout';
+import { Card, CardContent } from '../../components/ui/Card';
+import { BookOpen, Tags, HardDrive, FileText, PlusCircle, Eye, Loader2 } from 'lucide-react';
 
 function DashboardPage() {
   const [books, setBooks] = useState([]);
@@ -79,270 +81,190 @@ function DashboardPage() {
 
   return (
     <AdminLayout>
-      <div className="p-4">
+      <div className="p-4 md:p-6">
         {/* Header */}
-        <div className="mb-4">
-          <h2 className="mb-2" style={{ color: '#5f6368', fontWeight: '600' }}>
+        <div className="mb-6">
+          <h2 className="text-2xl font-semibold text-gray-700 mb-1">
             Tableau de bord
           </h2>
-          <p className="text-muted">
-            Vue d'ensemble de votre bibliothèque chrétienne
+          <p className="text-gray-500">
+            Vue d&apos;ensemble de votre bibliothèque
           </p>
         </div>
 
         {loading ? (
-          <div className="text-center py-5">
-            <div className="spinner-border" style={{ color: '#8b5cf6' }} role="status">
-              <span className="visually-hidden">Chargement...</span>
-            </div>
+          <div className="flex justify-center py-20">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
         ) : (
           <>
             {/* Stats Cards */}
-            <div className="row g-4 mb-4">
-              <div className="col-md-3">
-                <div className="card border-0 shadow-sm h-100" style={{ borderRadius: '15px' }}>
-                  <div className="card-body p-4">
-                    <div className="d-flex align-items-center">
-                      <div
-                        className="me-3 d-flex align-items-center justify-content-center"
-                        style={{
-                          width: '50px',
-                          height: '50px',
-                          backgroundColor: '#ede9fe',
-                          borderRadius: '12px'
-                        }}
-                      >
-                        <span style={{ fontSize: '1.5rem' }}>📚</span>
-                      </div>
-                      <div>
-                        <div className="text-muted small">Total livres</div>
-                        <div className="h3 mb-0" style={{ color: '#8b5cf6' }}>
-                          {stats.totalBooks}
-                        </div>
-                      </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+              {/* Total livres */}
+              <Card>
+                <CardContent className="flex items-center gap-4">
+                  <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-violet-100">
+                    <BookOpen className="h-6 w-6 text-primary" />
+                  </div>
+                  <div>
+                    <div className="text-sm text-gray-500">Total livres</div>
+                    <div className="text-2xl font-bold text-primary">
+                      {stats.totalBooks}
                     </div>
                   </div>
-                </div>
-              </div>
+                </CardContent>
+              </Card>
 
-              <div className="col-md-3">
-                <div className="card border-0 shadow-sm h-100" style={{ borderRadius: '15px' }}>
-                  <div className="card-body p-4">
-                    <div className="d-flex align-items-center">
-                      <div
-                        className="me-3 d-flex align-items-center justify-content-center"
-                        style={{
-                          width: '50px',
-                          height: '50px',
-                          backgroundColor: '#dbeafe',
-                          borderRadius: '12px'
-                        }}
-                      >
-                        <span style={{ fontSize: '1.5rem' }}>🏷️</span>
-                      </div>
-                      <div>
-                        <div className="text-muted small">Catégories</div>
-                        <div className="h3 mb-0" style={{ color: '#3b82f6' }}>
-                          {categories.length}
-                        </div>
-                      </div>
+              {/* Catégories */}
+              <Card>
+                <CardContent className="flex items-center gap-4">
+                  <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-blue-100">
+                    <Tags className="h-6 w-6 text-secondary" />
+                  </div>
+                  <div>
+                    <div className="text-sm text-gray-500">Catégories</div>
+                    <div className="text-2xl font-bold text-secondary">
+                      {categories.length}
                     </div>
                   </div>
-                </div>
-              </div>
+                </CardContent>
+              </Card>
 
-              <div className="col-md-3">
-                <div className="card border-0 shadow-sm h-100" style={{ borderRadius: '15px' }}>
-                  <div className="card-body p-4">
-                    <div className="d-flex align-items-center">
-                      <div
-                        className="me-3 d-flex align-items-center justify-content-center"
-                        style={{
-                          width: '50px',
-                          height: '50px',
-                          backgroundColor: '#fef3c7',
-                          borderRadius: '12px'
-                        }}
-                      >
-                        <span style={{ fontSize: '1.5rem' }}>💾</span>
-                      </div>
-                      <div>
-                        <div className="text-muted small">Espace utilisé</div>
-                        <div className="h3 mb-0" style={{ color: '#f59e0b' }}>
-                          {formatSize(stats.totalSize)}
-                        </div>
-                      </div>
+              {/* Espace utilisé */}
+              <Card>
+                <CardContent className="flex items-center gap-4">
+                  <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-amber-100">
+                    <HardDrive className="h-6 w-6 text-warning" />
+                  </div>
+                  <div>
+                    <div className="text-sm text-gray-500">Espace utilisé</div>
+                    <div className="text-2xl font-bold text-warning">
+                      {formatSize(stats.totalSize)}
                     </div>
                   </div>
-                </div>
-              </div>
+                </CardContent>
+              </Card>
 
-              <div className="col-md-3">
-                <div className="card border-0 shadow-sm h-100" style={{ borderRadius: '15px' }}>
-                  <div className="card-body p-4">
-                    <div className="d-flex align-items-center">
-                      <div
-                        className="me-3 d-flex align-items-center justify-content-center"
-                        style={{
-                          width: '50px',
-                          height: '50px',
-                          backgroundColor: '#d1fae5',
-                          borderRadius: '12px'
-                        }}
-                      >
-                        <span style={{ fontSize: '1.5rem' }}>📖</span>
-                      </div>
-                      <div>
-                        <div className="text-muted small">Taille moyenne</div>
-                        <div className="h3 mb-0" style={{ color: '#10b981' }}>
-                          {stats.totalBooks > 0 ? formatSize(stats.totalSize / stats.totalBooks) : '0 MB'}
-                        </div>
-                      </div>
+              {/* Taille moyenne */}
+              <Card>
+                <CardContent className="flex items-center gap-4">
+                  <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-emerald-100">
+                    <FileText className="h-6 w-6 text-success" />
+                  </div>
+                  <div>
+                    <div className="text-sm text-gray-500">Taille moyenne</div>
+                    <div className="text-2xl font-bold text-success">
+                      {stats.totalBooks > 0 ? formatSize(stats.totalSize / stats.totalBooks) : '0 MB'}
                     </div>
                   </div>
-                </div>
-              </div>
+                </CardContent>
+              </Card>
             </div>
 
-            <div className="row g-4">
+            {/* Two columns */}
+            <div className="grid lg:grid-cols-7 gap-6">
               {/* Recent Books */}
-              <div className="col-lg-7">
-                <div className="card border-0 shadow-sm h-100" style={{ borderRadius: '15px' }}>
-                  <div className="card-body p-4">
-                    <div className="d-flex justify-content-between align-items-center mb-3">
-                      <h5 className="mb-0" style={{ color: '#5f6368' }}>Livres récents</h5>
+              <div className="lg:col-span-4">
+                <Card>
+                  <CardContent>
+                    <div className="flex justify-between items-center mb-4">
+                      <h3 className="text-lg font-semibold text-gray-700">Livres récents</h3>
                       <button
-                        className="btn btn-sm"
+                        className="text-sm px-3 py-1.5 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
                         onClick={() => navigate('/admin/books')}
-                        style={{
-                          backgroundColor: '#f3f4f6',
-                          color: '#5f6368',
-                          borderRadius: '10px',
-                          border: 'none'
-                        }}
                       >
                         Voir tout
                       </button>
                     </div>
 
                     {stats.recentBooks.length === 0 ? (
-                      <div className="text-center py-4">
-                        <div style={{ fontSize: '3rem', opacity: 0.5 }} className="mb-2">📚</div>
-                        <p className="text-muted">Aucun livre ajouté</p>
+                      <div className="text-center py-8">
+                        <BookOpen className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                        <p className="text-gray-500 mb-3">Aucun livre ajouté</p>
                         <button
-                          className="btn btn-sm px-3"
+                          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-white text-sm hover:bg-primary/90 transition-colors"
                           onClick={() => navigate('/admin/add-book')}
-                          style={{
-                            backgroundColor: '#8b5cf6',
-                            color: 'white',
-                            borderRadius: '10px',
-                            border: 'none'
-                          }}
                         >
+                          <PlusCircle className="h-4 w-4" />
                           Ajouter un livre
                         </button>
                       </div>
                     ) : (
-                      <div className="list-group list-group-flush">
+                      <div className="divide-y divide-gray-100">
                         {stats.recentBooks.map((book) => (
-                          <div key={book.id} className="list-group-item border-0 px-0 py-3">
-                            <div className="d-flex align-items-center">
-                              <div
-                                className="me-3 d-flex align-items-center justify-content-center"
-                                style={{
-                                  width: '40px',
-                                  height: '40px',
-                                  backgroundColor: '#f3f4f6',
-                                  borderRadius: '8px'
-                                }}
-                              >
-                                <span style={{ fontSize: '1.3rem' }}>📖</span>
-                              </div>
-                              <div className="flex-grow-1">
-                                <div className="fw-semibold" style={{ color: '#5f6368' }}>
-                                  {book.name}
-                                </div>
-                                <small className="text-muted">
-                                  Ajouté le {formatDate(book.addedDate)}
-                                </small>
-                              </div>
-                              <span
-                                className="badge"
-                                style={{
-                                  backgroundColor: categories.find(cat => cat.id === book.category)?.color || '#64748b',
-                                  color: 'white',
-                                  padding: '6px 12px',
-                                  borderRadius: '10px'
-                                }}
-                              >
-                                {formatSize(book.size)}
-                              </span>
+                          <div key={book.id} className="flex items-center gap-3 py-3">
+                            <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-gray-100">
+                              <BookOpen className="h-5 w-5 text-gray-500" />
                             </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="font-semibold text-gray-700 truncate">
+                                {book.name}
+                              </div>
+                              <div className="text-xs text-gray-400">
+                                Ajouté le {formatDate(book.addedDate)}
+                              </div>
+                            </div>
+                            <span
+                              className="text-xs font-medium px-2.5 py-1 rounded-lg text-white shrink-0"
+                              style={{
+                                backgroundColor: categories.find(cat => cat.id === book.category)?.color || '#64748b'
+                              }}
+                            >
+                              {formatSize(book.size)}
+                            </span>
                           </div>
                         ))}
                       </div>
                     )}
-                  </div>
-                </div>
+                  </CardContent>
+                </Card>
               </div>
 
-              {/* Popular Categories */}
-              <div className="col-lg-5">
-                <div className="card border-0 shadow-sm h-100" style={{ borderRadius: '15px' }}>
-                  <div className="card-body p-4">
-                    <div className="d-flex justify-content-between align-items-center mb-3">
-                      <h5 className="mb-0" style={{ color: '#5f6368' }}>Top catégories</h5>
+              {/* Top Categories */}
+              <div className="lg:col-span-3">
+                <Card>
+                  <CardContent>
+                    <div className="flex justify-between items-center mb-4">
+                      <h3 className="text-lg font-semibold text-gray-700">Top catégories</h3>
                       <button
-                        className="btn btn-sm"
+                        className="text-sm px-3 py-1.5 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
                         onClick={() => navigate('/admin/categories')}
-                        style={{
-                          backgroundColor: '#f3f4f6',
-                          color: '#5f6368',
-                          borderRadius: '10px',
-                          border: 'none'
-                        }}
                       >
                         Voir tout
                       </button>
                     </div>
 
                     {stats.popularCategories.length === 0 ? (
-                      <div className="text-center py-4">
-                        <div style={{ fontSize: '3rem', opacity: 0.5 }} className="mb-2">🏷️</div>
-                        <p className="text-muted">Aucune catégorie utilisée</p>
+                      <div className="text-center py-8">
+                        <Tags className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                        <p className="text-gray-500">Aucune catégorie utilisée</p>
                       </div>
                     ) : (
-                      <div className="list-group list-group-flush">
+                      <div className="divide-y divide-gray-100">
                         {stats.popularCategories.map(({ category, count }) => (
-                          <div key={category.id} className="list-group-item border-0 px-0 py-3">
-                            <div className="d-flex align-items-center justify-content-between mb-2">
-                              <div className="d-flex align-items-center">
-                                <span style={{ fontSize: '1.5rem', marginRight: '12px' }}>
-                                  {category.icon}
-                                </span>
+                          <div key={category.id} className="py-3">
+                            <div className="flex items-center justify-between mb-2">
+                              <div className="flex items-center gap-3">
+                                <span className="text-2xl">{category.icon}</span>
                                 <div>
-                                  <div className="fw-semibold" style={{ color: '#5f6368' }}>
+                                  <div className="font-semibold text-gray-700">
                                     {category.name}
                                   </div>
-                                  <small className="text-muted">{count} livre{count > 1 ? 's' : ''}</small>
+                                  <span className="text-xs text-gray-400">
+                                    {count} livre{count > 1 ? 's' : ''}
+                                  </span>
                                 </div>
                               </div>
                               <span
-                                className="badge rounded-pill"
-                                style={{
-                                  backgroundColor: category.color,
-                                  color: 'white',
-                                  padding: '6px 12px'
-                                }}
+                                className="text-xs font-medium px-2.5 py-1 rounded-full text-white"
+                                style={{ backgroundColor: category.color }}
                               >
                                 {((count / stats.totalBooks) * 100).toFixed(0)}%
                               </span>
                             </div>
-                            <div className="progress" style={{ height: '4px', borderRadius: '10px' }}>
+                            <div className="h-1 rounded-full bg-gray-100">
                               <div
-                                className="progress-bar"
-                                role="progressbar"
+                                className="h-1 rounded-full transition-all"
                                 style={{
                                   width: `${(count / stats.totalBooks) * 100}%`,
                                   backgroundColor: category.color
@@ -353,59 +275,40 @@ function DashboardPage() {
                         ))}
                       </div>
                     )}
-                  </div>
-                </div>
+                  </CardContent>
+                </Card>
               </div>
             </div>
 
             {/* Quick Actions */}
-            <div className="row g-4 mt-2">
-              <div className="col-12">
-                <div className="card border-0 shadow-sm" style={{ borderRadius: '15px', backgroundColor: '#ede9fe' }}>
-                  <div className="card-body p-4">
-                    <h5 className="mb-3" style={{ color: '#8b5cf6' }}>Actions rapides</h5>
-                    <div className="d-flex flex-wrap gap-2">
-                      <button
-                        className="btn px-4"
-                        onClick={() => navigate('/admin/add-book')}
-                        style={{
-                          backgroundColor: '#8b5cf6',
-                          color: 'white',
-                          borderRadius: '20px',
-                          border: 'none'
-                        }}
-                      >
-                        ➕ Ajouter un livre
-                      </button>
-                      <button
-                        className="btn px-4"
-                        onClick={() => navigate('/admin/books')}
-                        style={{
-                          backgroundColor: 'white',
-                          color: '#8b5cf6',
-                          borderRadius: '20px',
-                          border: 'none'
-                        }}
-                      >
-                        📚 Gérer les livres
-                      </button>
-                      <button
-                        className="btn px-4"
-                        onClick={() => navigate('/catalog')}
-                        style={{
-                          backgroundColor: 'white',
-                          color: '#8b5cf6',
-                          borderRadius: '20px',
-                          border: 'none'
-                        }}
-                      >
-                        👁️ Voir le catalogue
-                      </button>
-                    </div>
-                  </div>
+            <Card className="mt-6 bg-primary/5 border-none">
+              <CardContent className="p-6">
+                <h3 className="text-lg font-semibold text-primary mb-4">Actions rapides</h3>
+                <div className="flex flex-wrap gap-3">
+                  <button
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary text-white text-sm font-medium hover:bg-primary/90 transition-colors"
+                    onClick={() => navigate('/admin/add-book')}
+                  >
+                    <PlusCircle className="h-4 w-4" />
+                    Ajouter un livre
+                  </button>
+                  <button
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white text-primary text-sm font-medium hover:bg-gray-50 transition-colors"
+                    onClick={() => navigate('/admin/books')}
+                  >
+                    <BookOpen className="h-4 w-4" />
+                    Gérer les livres
+                  </button>
+                  <button
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white text-primary text-sm font-medium hover:bg-gray-50 transition-colors"
+                    onClick={() => navigate('/catalog')}
+                  >
+                    <Eye className="h-4 w-4" />
+                    Voir le catalogue
+                  </button>
                 </div>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
           </>
         )}
       </div>
