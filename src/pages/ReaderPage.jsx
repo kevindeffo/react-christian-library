@@ -32,6 +32,8 @@ function ReaderPage() {
   const location = useLocation();
   const { user } = useAuth();
   const thumbnailRefs = useRef({});
+  const contentRef = useRef(null);
+  const [containerWidth, setContainerWidth] = useState(0);
 
   useEffect(() => {
     const verifyAccess = async () => {
@@ -123,6 +125,19 @@ function ReaderPage() {
     }
   }, [pageNumber, sidebarOpen]);
 
+  // Mesurer la largeur du conteneur pour adapter le PDF
+  useEffect(() => {
+    const el = contentRef.current;
+    if (!el) return;
+    const observer = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        setContainerWidth(entry.contentRect.width);
+      }
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
   // Miniatures virtualisées
   const thumbnailPages = useMemo(() => {
     if (!numPages) return [];
@@ -150,6 +165,15 @@ function ReaderPage() {
   if (!pdfSource) return null;
 
   const showSidebar = sidebarOpen && pdfDocument;
+
+  // Sur mobile (< 640px), adapter la page PDF à la largeur du conteneur
+  // Sur desktop, utiliser le scale classique
+  const padding = containerWidth < 640 ? 16 : 48; // p-2 vs p-6
+  const availableWidth = containerWidth - padding;
+  const isMobile = containerWidth > 0 && containerWidth < 640;
+  const pageProps = isMobile
+    ? { width: Math.max(availableWidth * scale, 200) }
+    : { scale };
 
   return (
     <div className="fixed inset-0 flex flex-col select-none bg-gray-50">
@@ -273,9 +297,9 @@ function ReaderPage() {
         )}
 
         {/* Main content */}
-        <div className="relative flex flex-col flex-1 min-w-0">
+        <div ref={contentRef} className="relative flex flex-col flex-1 min-w-0">
           <div className="flex-1 overflow-y-auto overflow-x-auto">
-            <div className="flex justify-center p-4 sm:p-6">
+            <div className="flex justify-center p-2 sm:p-6">
               {error ? (
                 <div className="text-center pt-20">
                   <p className="text-danger mb-4">{error}</p>
@@ -295,7 +319,7 @@ function ReaderPage() {
                     </div>
                   }
                 >
-                  <Page pageNumber={pageNumber} scale={scale} />
+                  <Page pageNumber={pageNumber} {...pageProps} />
                 </Document>
               )}
             </div>
