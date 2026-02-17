@@ -1,20 +1,21 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { getBookById } from '../services/libraryService';
+import { getBookById, getPdfUrl } from '../services/bookService';
+import { checkAccess } from '../services/bookAccessService';
 import { useCategories } from '../hooks/useCategories';
 import { formatDate, formatSize } from '../utils/formatters';
 import Button from '../components/ui/Button';
 import { Card, CardContent } from '../components/ui/Card';
 import CategoryBadge from '../components/shared/CategoryBadge';
 import { ROUTES } from '../utils/constants';
-import { ArrowLeft, BookOpen, Calendar, HardDrive, Eye, Check, Lock } from 'lucide-react';
+import { ArrowLeft, BookOpen, Calendar, HardDrive, Check, Lock, AlertCircle, Clock } from 'lucide-react';
 import { Loader2 } from 'lucide-react';
-import { cn } from '../lib/utils';
 
 function BookDetailsPage() {
   const [book, setBook] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [accessStatus, setAccessStatus] = useState({ hasAccess: false, expired: false });
   const [searchParams] = useSearchParams();
   const bookId = searchParams.get('id');
   const navigate = useNavigate();
@@ -25,6 +26,12 @@ function BookDetailsPage() {
     loadBook();
   }, [bookId]);
 
+  useEffect(() => {
+    if (user && bookId) {
+      checkAccess(user.id, bookId).then(setAccessStatus);
+    }
+  }, [user, bookId]);
+
   const loadBook = async () => {
     if (!bookId) {
       navigate(ROUTES.CATALOG);
@@ -33,7 +40,7 @@ function BookDetailsPage() {
 
     try {
       setLoading(true);
-      const bookData = await getBookById(parseInt(bookId));
+      const bookData = await getBookById(bookId);
       if (bookData) {
         setBook(bookData);
       } else {
@@ -47,7 +54,7 @@ function BookDetailsPage() {
     }
   };
 
-  const handleReadBook = () => {
+  const handleReadBook = async () => {
     if (!user) {
       navigate(ROUTES.LOGIN, {
         state: { from: { pathname: ROUTES.READER, search: `?id=${bookId}` } }
@@ -55,14 +62,20 @@ function BookDetailsPage() {
       return;
     }
 
-    navigate(ROUTES.READER, {
-      state: {
-        file: book.file,
-        fileName: book.name,
-        bookId: book.id,
-        currentPage: book.currentPage || 1
-      }
-    });
+    try {
+      // Get signed URL for the PDF from Supabase Storage
+      const pdfSignedUrl = await getPdfUrl(book.pdfUrl);
+      navigate(ROUTES.READER, {
+        state: {
+          pdfUrl: pdfSignedUrl,
+          fileName: book.name,
+          bookId: book.id,
+          totalPages: book.totalPages,
+        }
+      });
+    } catch (error) {
+      console.error('Error getting PDF URL:', error);
+    }
   };
 
   if (loading) {
@@ -120,7 +133,22 @@ function BookDetailsPage() {
                   <BookOpen className="h-24 w-24 text-primary/30" />
                 </div>
 
-                {user ? (
+                {!user ? (
+                  <>
+                    <Button
+                      variant="primary"
+                      size="lg"
+                      fullWidth
+                      onClick={handleReadBook}
+                    >
+                      <Lock className="h-5 w-5" />
+                      Se connecter pour lire
+                    </Button>
+                    <p className="text-gray-400 text-sm mt-3">
+                      Vous devez être connecté pour lire ce livre
+                    </p>
+                  </>
+                ) : user.role === 'admin' || accessStatus.hasAccess ? (
                   <Button
                     variant="primary"
                     size="lg"
@@ -130,22 +158,22 @@ function BookDetailsPage() {
                     <BookOpen className="h-5 w-5" />
                     Lire maintenant
                   </Button>
+                ) : accessStatus.expired ? (
+                  <div className="bg-amber-50 rounded-xl p-4 text-center">
+                    <Clock className="h-8 w-8 text-amber-500 mx-auto mb-2" />
+                    <p className="text-amber-700 font-semibold mb-1">Votre accès a expiré</p>
+                    <p className="text-amber-600 text-sm">
+                      Contactez l&apos;administrateur pour renouveler votre accès
+                    </p>
+                  </div>
                 ) : (
-                  <Button
-                    variant="primary"
-                    size="lg"
-                    fullWidth
-                    onClick={handleReadBook}
-                  >
-                    <Lock className="h-5 w-5" />
-                    Se connecter pour lire
-                  </Button>
-                )}
-
-                {!user && (
-                  <p className="text-gray-400 text-sm mt-3">
-                    Vous devez être connecté pour lire ce livre
-                  </p>
+                  <div className="bg-gray-50 rounded-xl p-4 text-center">
+                    <AlertCircle className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                    <p className="text-gray-600 font-semibold mb-1">Accès non autorisé</p>
+                    <p className="text-gray-500 text-sm">
+                      Contactez l&apos;administrateur pour obtenir l&apos;accès
+                    </p>
+                  </div>
                 )}
               </CardContent>
             </Card>
@@ -161,9 +189,14 @@ function BookDetailsPage() {
                 </div>
 
                 {/* Title */}
-                <h1 className="text-2xl font-bold text-gray-900 mb-4">
+                <h1 className="text-2xl font-bold text-gray-900 mb-2">
                   {book.name}
                 </h1>
+
+                {/* Author */}
+                {book.author && (
+                  <p className="text-gray-500 mb-4">par <strong>{book.author}</strong></p>
+                )}
 
                 {/* Meta Information */}
                 <div className="grid sm:grid-cols-2 gap-4 mb-6">
@@ -185,17 +218,6 @@ function BookDetailsPage() {
                       <div className="font-medium text-gray-700">{formatSize(book.size)}</div>
                     </div>
                   </div>
-                  {book.lastRead && (
-                    <div className="flex items-center gap-3">
-                      <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-warning/10">
-                        <Eye className="h-5 w-5 text-warning" />
-                      </div>
-                      <div>
-                        <div className="text-sm text-gray-400">Dernière lecture</div>
-                        <div className="font-medium text-gray-700">{formatDate(book.lastRead)}</div>
-                      </div>
-                    </div>
-                  )}
                 </div>
 
                 <hr className="border-gray-100 my-6" />
@@ -204,8 +226,12 @@ function BookDetailsPage() {
                 <div className="mb-6">
                   <h5 className="text-lg font-semibold text-gray-900 mb-3">Description</h5>
                   <p className="text-gray-500 leading-relaxed">
-                    Ce livre fait partie de la catégorie <strong>{category?.name}</strong>.
-                    {category?.description && ` ${category.description}`}
+                    {book.description || (
+                      <>
+                        Ce livre fait partie de la catégorie <strong>{category?.name}</strong>.
+                        {category?.description && ` ${category.description}`}
+                      </>
+                    )}
                   </p>
                 </div>
 
@@ -227,26 +253,6 @@ function BookDetailsPage() {
                   </ul>
                 </div>
 
-                {!user && (
-                  <div className="bg-primary/5 rounded-xl p-6">
-                    <div className="flex items-start gap-3 mb-3">
-                      <BookOpen className="h-6 w-6 text-primary flex-shrink-0 mt-0.5" />
-                      <h6 className="text-primary font-semibold">
-                        Profitez de notre bibliothèque complète
-                      </h6>
-                    </div>
-                    <p className="text-gray-600 mb-4 ml-9">
-                      Créez un compte gratuitement pour accéder à tous nos livres.
-                    </p>
-                    <div className="ml-9">
-                      <Link to={ROUTES.REGISTER}>
-                        <Button variant="primary" size="sm">
-                          S&apos;inscrire gratuitement
-                        </Button>
-                      </Link>
-                    </div>
-                  </div>
-                )}
               </CardContent>
             </Card>
           </div>

@@ -3,13 +3,6 @@
  * Centralized constants to avoid magic strings/numbers
  */
 
-// Database configuration
-export const DB_CONFIG = {
-  NAME: 'BookReaderDB',
-  VERSION: 2,
-  STORE_NAME: 'books',
-};
-
 // Routes
 export const ROUTES = {
   // Public routes
@@ -18,7 +11,6 @@ export const ROUTES = {
   LIBRARY: '/library',
   READER: '/reader',
   LOGIN: '/login',
-  REGISTER: '/register',
   BOOK_DETAILS: '/book',
 
   // Admin routes
@@ -27,6 +19,8 @@ export const ROUTES = {
   ADMIN_BOOKS: '/admin/books',
   ADMIN_ADD_BOOK: '/admin/add-book',
   ADMIN_CATEGORIES: '/admin/categories',
+  ADMIN_USERS: '/admin/users',
+  ADMIN_USER_ACCESS: '/admin/users/access',
 };
 
 // File types
@@ -53,7 +47,6 @@ export const STORAGE_KEYS = {
   USER_PREFERENCES: 'user_preferences',
   LAST_VIEWED_BOOK: 'last_viewed_book',
   THEME: 'theme_preference',
-  USER_SESSION: 'user_session',
 };
 
 // Book default values
@@ -119,7 +112,6 @@ export const ANIMATION = {
 };
 
 export default {
-  DB_CONFIG,
   ROUTES,
   FILE_TYPES,
   FILE_SIZE_LIMITS,

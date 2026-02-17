@@ -1,30 +1,44 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getAllBooks } from '../../services/bookService';
-import categories from '../../config/categories.json';
+import { getAllUsers } from '../../services/userService';
+import { useCategories } from '../../hooks/useCategories';
 import AdminLayout from '../../components/layouts/AdminLayout';
 import { Card, CardContent } from '../../components/ui/Card';
-import { BookOpen, Tags, HardDrive, FileText, PlusCircle, Eye, Loader2 } from 'lucide-react';
+import { BookOpen, Tags, HardDrive, Users, PlusCircle, Eye, Loader2 } from 'lucide-react';
 
 function DashboardPage() {
   const [books, setBooks] = useState([]);
   const [stats, setStats] = useState({
     totalBooks: 0,
+    totalUsers: 0,
     totalSize: 0,
     recentBooks: [],
     popularCategories: []
   });
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const { categories, loading: categoriesLoading } = useCategories();
 
   useEffect(() => {
-    loadDashboardData();
-  }, []);
+    if (!categoriesLoading) {
+      loadDashboardData();
+    }
+  }, [categoriesLoading]);
 
   const loadDashboardData = async () => {
+    console.log('[DASHBOARD] loadDashboardData start');
     try {
       const allBooks = await getAllBooks();
+      console.log('[DASHBOARD] books loaded:', allBooks.length);
       setBooks(allBooks);
+
+      let allUsers = [];
+      try {
+        allUsers = await getAllUsers();
+      } catch (e) {
+        console.warn('Impossible de charger les utilisateurs:', e);
+      }
 
       // Calculer les statistiques
       const totalSize = allBooks.reduce((sum, book) => sum + book.size, 0);
@@ -43,18 +57,21 @@ function DashboardPage() {
           category: categories.find(cat => cat.id === categoryId) || categories.find(cat => cat.id === 'other'),
           count
         }))
+        .filter(({ category }) => category)
         .sort((a, b) => b.count - a.count)
         .slice(0, 5);
 
       setStats({
         totalBooks: allBooks.length,
+        totalUsers: allUsers.length,
         totalSize,
         recentBooks,
         popularCategories
       });
     } catch (error) {
-      console.error('Erreur lors du chargement des données:', error);
+      console.error('[DASHBOARD] ERROR:', error);
     } finally {
+      console.log('[DASHBOARD] loading done, stats:', stats);
       setLoading(false);
     }
   };
@@ -145,16 +162,16 @@ function DashboardPage() {
                 </CardContent>
               </Card>
 
-              {/* Taille moyenne */}
+              {/* Total utilisateurs */}
               <Card>
                 <CardContent className="flex items-center gap-4">
                   <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-emerald-100">
-                    <FileText className="h-6 w-6 text-success" />
+                    <Users className="h-6 w-6 text-success" />
                   </div>
                   <div>
-                    <div className="text-sm text-gray-500">Taille moyenne</div>
+                    <div className="text-sm text-gray-500">Utilisateurs</div>
                     <div className="text-2xl font-bold text-success">
-                      {stats.totalBooks > 0 ? formatSize(stats.totalSize / stats.totalBooks) : '0 MB'}
+                      {stats.totalUsers}
                     </div>
                   </div>
                 </CardContent>

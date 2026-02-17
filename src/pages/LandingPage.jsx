@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCategories } from '../hooks/useCategories';
-import { BookOpen, Sparkles, Smartphone, ShieldCheck, Menu, X, BookMarked, User, LogOut, Library, GraduationCap, Heart } from 'lucide-react';
+import { BookOpen, Sparkles, Smartphone, ShieldCheck, Menu, X, BookMarked, User, LogOut, Library, GraduationCap, Heart, LayoutDashboard } from 'lucide-react';
 import { ROUTES } from '../utils/constants';
 import Button from '../components/ui/Button';
 import {
@@ -20,9 +20,9 @@ function LandingPage() {
   const { user, logout } = useAuth();
   const { categories } = useCategories();
 
-  const handleLogout = () => {
-    logout();
-    window.location.reload();
+  const handleLogout = async () => {
+    await logout();
+    navigate('/');
   };
 
   return (
@@ -49,40 +49,37 @@ function LandingPage() {
               <a href="#about" className="text-sm font-medium text-gray-600 hover:text-primary transition-colors no-underline">À propos</a>
 
               {user ? (
-                <div className="flex items-center gap-3">
-                  {user.role === 'admin' && (
-                    <Button size="sm" onClick={() => navigate(ROUTES.ADMIN)}>Admin</Button>
-                  )}
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <button className="flex items-center justify-center w-10 h-10 rounded-full bg-primary text-white font-semibold text-sm hover:bg-primary-dark transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2">
-                        {user.name.charAt(0).toUpperCase()}
-                      </button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuLabel>
-                        <div className="text-gray-500 text-xs font-normal">Connecté en tant que</div>
-                        <div className="text-primary font-semibold">{user.name}</div>
-                      </DropdownMenuLabel>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={() => navigate('/my-books')}>
-                        <BookMarked className="h-4 w-4 text-gray-500" /> Mes livres
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button className="flex items-center justify-center w-10 h-10 rounded-full bg-primary text-white hover:bg-primary-dark transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2">
+                      <User className="h-5 w-5" />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuLabel>
+                      <div className="text-gray-500 text-xs font-normal">Connecté en tant que</div>
+                      <div className="text-primary font-semibold">{user.name}</div>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    {user.role === 'admin' && (
+                      <DropdownMenuItem onClick={() => navigate(ROUTES.ADMIN_DASHBOARD)}>
+                        <LayoutDashboard className="h-4 w-4 text-gray-500" /> Dashboard
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => navigate('/profile')}>
-                        <User className="h-4 w-4 text-gray-500" /> Mon profil
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={handleLogout} className="text-danger">
-                        <LogOut className="h-4 w-4" /> Déconnexion
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
+                    )}
+                    <DropdownMenuItem onClick={() => navigate('/my-books')}>
+                      <BookMarked className="h-4 w-4 text-gray-500" /> Mes livres
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate('/profile')}>
+                      <User className="h-4 w-4 text-gray-500" /> Mon profil
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleLogout} className="text-danger">
+                      <LogOut className="h-4 w-4" /> Déconnexion
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               ) : (
-                <div className="flex items-center gap-2">
-                  <Button variant="ghost" size="sm" onClick={() => navigate(ROUTES.LOGIN)}>Connexion</Button>
-                  <Button size="sm" onClick={() => navigate(ROUTES.REGISTER)}>S&apos;inscrire</Button>
-                </div>
+                <Button variant="ghost" size="sm" onClick={() => navigate(ROUTES.LOGIN)}>Connexion</Button>
               )}
             </div>
 
@@ -104,15 +101,24 @@ function LandingPage() {
               <a href="#about" className="block px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 no-underline">À propos</a>
               <div className="pt-2 border-t border-gray-100 flex gap-2">
                 {user ? (
-                  <>
-                    <Button variant="ghost" size="sm" fullWidth onClick={() => { navigate('/my-books'); setMobileMenuOpen(false); }}>Mes livres</Button>
-                    <Button variant="danger" size="sm" fullWidth onClick={handleLogout}>Déconnexion</Button>
-                  </>
+                  <div className="flex flex-col gap-2 w-full">
+                    {user.role === 'admin' && (
+                      <Button variant="ghost" size="sm" fullWidth onClick={() => { navigate(ROUTES.ADMIN_DASHBOARD); setMobileMenuOpen(false); }}>
+                        <LayoutDashboard className="h-4 w-4" /> Dashboard
+                      </Button>
+                    )}
+                    <Button variant="ghost" size="sm" fullWidth onClick={() => { navigate('/my-books'); setMobileMenuOpen(false); }}>
+                      <BookMarked className="h-4 w-4" /> Mes livres
+                    </Button>
+                    <Button variant="ghost" size="sm" fullWidth onClick={() => { navigate('/profile'); setMobileMenuOpen(false); }}>
+                      <User className="h-4 w-4" /> Mon profil
+                    </Button>
+                    <Button variant="danger" size="sm" fullWidth onClick={handleLogout}>
+                      <LogOut className="h-4 w-4" /> Déconnexion
+                    </Button>
+                  </div>
                 ) : (
-                  <>
-                    <Button variant="ghost" size="sm" fullWidth onClick={() => navigate(ROUTES.LOGIN)}>Connexion</Button>
-                    <Button size="sm" fullWidth onClick={() => navigate(ROUTES.REGISTER)}>S&apos;inscrire</Button>
-                  </>
+                  <Button variant="ghost" size="sm" fullWidth onClick={() => navigate(ROUTES.LOGIN)}>Connexion</Button>
                 )}
               </div>
             </div>
@@ -158,16 +164,6 @@ function LandingPage() {
                   >
                     Explorer le catalogue
                   </Button>
-                  {!user && (
-                    <Button
-                      variant="none"
-                      size="lg"
-                      className="border border-white/30 bg-white/10 text-white hover:bg-white/20 backdrop-blur-sm font-medium"
-                      onClick={() => navigate(ROUTES.REGISTER)}
-                    >
-                      Créer un compte
-                    </Button>
-                  )}
                 </div>
               </div>
 

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { CATEGORIES, getAllBooks } from '../../services/libraryService';
+import { getAllBooks } from '../../services/bookService';
+import { useCategories } from '../../hooks/useCategories';
 import AdminLayout from '../../components/layouts/AdminLayout';
 import { Card, CardContent } from '../../components/ui/Card';
 import Badge from '../../components/ui/Badge';
@@ -8,16 +9,19 @@ import { Tags, BookOpen, Sparkles, Lightbulb, Loader2 } from 'lucide-react';
 function CategoriesManagementPage() {
   const [categoriesWithCount, setCategoriesWithCount] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { categories } = useCategories();
 
   useEffect(() => {
-    loadCategoriesData();
-  }, []);
+    if (categories.length > 0) {
+      loadCategoriesData();
+    }
+  }, [categories]);
 
   const loadCategoriesData = async () => {
     try {
       const books = await getAllBooks();
 
-      const categoriesData = CATEGORIES.map(category => {
+      const categoriesData = categories.map(category => {
         const count = books.filter(book => book.category === category.id).length;
         return {
           ...category,
@@ -44,7 +48,7 @@ function CategoriesManagementPage() {
             Gestion des catégories
           </h2>
           <p className="text-gray-500">
-            {CATEGORIES.length} catégories disponibles &bull; {totalBooks} livres au total
+            {categories.length} catégories disponibles &bull; {totalBooks} livres au total
           </p>
         </div>
 
@@ -57,7 +61,7 @@ function CategoriesManagementPage() {
               </div>
               <div>
                 <div className="text-sm text-gray-500">Catégories</div>
-                <div className="text-2xl font-bold text-primary">{CATEGORIES.length}</div>
+                <div className="text-2xl font-bold text-primary">{categories.length}</div>
               </div>
             </CardContent>
           </Card>

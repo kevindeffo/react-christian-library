@@ -1,249 +1,187 @@
 /**
  * Authentication Service
- * Manages user authentication with JSON storage
- * TODO: Replace with API calls when backend is ready
+ * Manages user authentication with Supabase Auth
  */
 
-import usersData from '../config/users.json';
-import { STORAGE_KEYS } from '../utils/constants';
-
-const USERS_STORAGE_KEY = 'app_users';
-const SESSION_KEY = STORAGE_KEYS.USER_SESSION || 'user_session';
+import { supabase } from '../lib/supabase';
 
 /**
- * Initialize users in localStorage from JSON
- * In production, this will be handled by backend
+ * Get user profile from user_profiles table
+ * @param {string} userId - User UUID
+ * @returns {Promise<object|null>} Profile or null
  */
-const initializeUsers = () => {
-  const existingUsers = localStorage.getItem(USERS_STORAGE_KEY);
-  if (!existingUsers) {
-    localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(usersData));
+const getUserProfile = async (userId) => {
+  const { data, error } = await supabase
+    .from('user_profiles')
+    .select('*')
+    .eq('id', userId)
+    .single();
+
+  if (error) {
+    console.error('Error fetching user profile:', error);
+    return null;
   }
+
+  return data;
 };
 
 /**
- * Get all users from storage
- * @returns {Array} List of users
+ * Build a user object from Supabase auth user + profile
  */
-const getUsers = () => {
-  initializeUsers();
-  const users = localStorage.getItem(USERS_STORAGE_KEY);
-  return users ? JSON.parse(users) : [];
-};
+const buildUser = async (authUser) => {
+  if (!authUser) return null;
 
-/**
- * Save users to storage
- * @param {Array} users - Users array
- */
-const saveUsers = (users) => {
-  localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(users));
+  const profile = await getUserProfile(authUser.id);
+
+  return {
+    id: authUser.id,
+    email: authUser.email,
+    name: profile?.name || authUser.user_metadata?.name || 'Utilisateur',
+    role: profile?.role || 'user',
+    createdAt: authUser.created_at,
+  };
 };
 
 /**
  * Login user
  * @param {string} email - User email
  * @param {string} password - User password
- * @returns {Promise<object>} User object without password
+ * @returns {Promise<object>} User object with profile
  */
 export const login = async (email, password) => {
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 500));
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
 
-  const users = getUsers();
-  const user = users.find(u => u.email === email && u.password === password);
-
-  if (!user) {
+  if (error) {
     throw new Error('Email ou mot de passe incorrect');
   }
 
-  // Don't store password in session
-  const { password: _, ...userWithoutPassword } = user;
-
-  // Store session
-  const session = {
-    user: userWithoutPassword,
-    token: btoa(`${user.email}:${Date.now()}`), // Simple token for demo
-    expiresAt: Date.now() + (24 * 60 * 60 * 1000), // 24 hours
-  };
-
-  localStorage.setItem(SESSION_KEY, JSON.stringify(session));
-
-  return userWithoutPassword;
+  return buildUser(data.user);
 };
 
 /**
  * Register new user
  * @param {object} userData - User data
- * @returns {Promise<object>} Created user without password
+ * @returns {Promise<object>} Created user
  */
 export const register = async (userData) => {
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 500));
-
-  const users = getUsers();
-
-  // Check if email already exists
-  if (users.find(u => u.email === userData.email)) {
-    throw new Error('Cet email est déjà utilisé');
-  }
-
-  // Create new user
-  const newUser = {
-    id: Math.max(...users.map(u => u.id), 0) + 1,
+  const { data, error } = await supabase.auth.signUp({
     email: userData.email,
     password: userData.password,
+    options: {
+      data: {
+        name: userData.name,
+      },
+    },
+  });
+
+  if (error) {
+    if (error.message.includes('already registered')) {
+      throw new Error('Cet email est déjà utilisé');
+    }
+    throw new Error(error.message);
+  }
+
+  // Le trigger handle_new_user cree le profil, mais il peut y avoir un delai.
+  // On retourne les infos depuis la reponse auth directement.
+  return {
+    id: data.user.id,
+    email: data.user.email,
     name: userData.name,
-    role: 'user', // Default role
-    createdAt: new Date().toISOString(),
+    role: 'user',
+    createdAt: data.user.created_at,
   };
-
-  users.push(newUser);
-  saveUsers(users);
-
-  // Auto-login after registration
-  const { password: _, ...userWithoutPassword } = newUser;
-
-  const session = {
-    user: userWithoutPassword,
-    token: btoa(`${newUser.email}:${Date.now()}`),
-    expiresAt: Date.now() + (24 * 60 * 60 * 1000),
-  };
-
-  localStorage.setItem(SESSION_KEY, JSON.stringify(session));
-
-  return userWithoutPassword;
 };
 
 /**
  * Logout current user
  */
-export const logout = () => {
-  localStorage.removeItem(SESSION_KEY);
-};
-
-/**
- * Get current user session
- * @returns {object|null} Current session or null
- */
-export const getCurrentSession = () => {
-  const session = localStorage.getItem(SESSION_KEY);
-  if (!session) return null;
-
-  try {
-    const parsedSession = JSON.parse(session);
-
-    // Check if session is expired
-    if (parsedSession.expiresAt < Date.now()) {
-      logout();
-      return null;
-    }
-
-    return parsedSession;
-  } catch (error) {
-    console.error('Error parsing session:', error);
-    logout();
-    return null;
+export const logout = async () => {
+  const { error } = await supabase.auth.signOut();
+  if (error) {
+    console.error('Erreur lors de la déconnexion:', error);
   }
 };
 
 /**
- * Get current user
- * @returns {object|null} Current user or null
+ * Get current user from session (no network call)
+ * Uses getSession() which reads from local storage, then enriches with profile.
+ * @returns {Promise<object|null>} Current user or null
  */
-export const getCurrentUser = () => {
-  const session = getCurrentSession();
-  return session ? session.user : null;
-};
+export const getCurrentUser = async () => {
+  const { data: { session } } = await supabase.auth.getSession();
 
-/**
- * Check if user is authenticated
- * @returns {boolean} True if authenticated
- */
-export const isAuthenticated = () => {
-  return getCurrentSession() !== null;
-};
+  if (!session?.user) return null;
 
-/**
- * Check if current user is admin
- * @returns {boolean} True if admin
- */
-export const isAdmin = () => {
-  const user = getCurrentUser();
-  return user && user.role === 'admin';
+  return buildUser(session.user);
 };
 
 /**
  * Update user profile
- * @param {object} updates - Profile updates
+ * @param {object} updates - Profile updates (name, email)
  * @returns {Promise<object>} Updated user
  */
 export const updateProfile = async (updates) => {
-  await new Promise(resolve => setTimeout(resolve, 500));
-
-  const session = getCurrentSession();
-  if (!session) {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session?.user) {
     throw new Error('Non authentifié');
   }
 
-  const users = getUsers();
-  const userIndex = users.findIndex(u => u.id === session.user.id);
+  // Update name in user_profiles
+  if (updates.name) {
+    const { error } = await supabase
+      .from('user_profiles')
+      .update({ name: updates.name })
+      .eq('id', session.user.id);
 
-  if (userIndex === -1) {
-    throw new Error('Utilisateur non trouvé');
+    if (error) throw new Error('Erreur lors de la mise à jour du profil');
   }
 
-  // Update user
-  users[userIndex] = {
-    ...users[userIndex],
-    ...updates,
-    id: users[userIndex].id, // Don't allow ID change
-    role: users[userIndex].role, // Don't allow role change
-  };
+  // Update email via Supabase Auth if changed
+  if (updates.email && updates.email !== session.user.email) {
+    const { error } = await supabase.auth.updateUser({
+      email: updates.email,
+    });
+    if (error) throw new Error('Erreur lors de la mise à jour de l\'email');
+  }
 
-  saveUsers(users);
-
-  // Update session
-  const { password: _, ...userWithoutPassword } = users[userIndex];
-  session.user = userWithoutPassword;
-  localStorage.setItem(SESSION_KEY, JSON.stringify(session));
-
-  return userWithoutPassword;
+  return getCurrentUser();
 };
 
 /**
  * Change password
- * @param {string} currentPassword - Current password
+ * @param {string} currentPassword - Current password (unused with Supabase, kept for API compat)
  * @param {string} newPassword - New password
  * @returns {Promise<void>}
  */
 export const changePassword = async (currentPassword, newPassword) => {
-  await new Promise(resolve => setTimeout(resolve, 500));
+  const { error } = await supabase.auth.updateUser({
+    password: newPassword,
+  });
 
-  const session = getCurrentSession();
-  if (!session) {
-    throw new Error('Non authentifié');
+  if (error) {
+    throw new Error('Erreur lors du changement de mot de passe');
   }
+};
 
-  const users = getUsers();
-  const user = users.find(u => u.id === session.user.id);
-
-  if (!user || user.password !== currentPassword) {
-    throw new Error('Mot de passe actuel incorrect');
-  }
-
-  // Update password
-  user.password = newPassword;
-  saveUsers(users);
+/**
+ * Listen for auth state changes
+ * @param {Function} callback - Called with (event, session)
+ * @returns {Function} Unsubscribe function
+ */
+export const onAuthStateChange = (callback) => {
+  const { data: { subscription } } = supabase.auth.onAuthStateChange(callback);
+  return () => subscription.unsubscribe();
 };
 
 export default {
   login,
   register,
   logout,
-  getCurrentSession,
   getCurrentUser,
-  isAuthenticated,
-  isAdmin,
   updateProfile,
   changePassword,
+  onAuthStateChange,
 };

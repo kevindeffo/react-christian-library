@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { addBook } from '../../services/bookService';
-import categories from '../../config/categories.json';
+import { useCategories } from '../../hooks/useCategories';
 import AdminLayout from '../../components/layouts/AdminLayout';
 import { Card, CardContent } from '../../components/ui/Card';
 import Input from '../../components/ui/Input';
@@ -21,6 +21,7 @@ function AddBookPage() {
   const [selectedCategory, setSelectedCategory] = useState('fiction');
   const [saving, setSaving] = useState(false);
   const navigate = useNavigate();
+  const { categories } = useCategories();
 
   const handleFileSelect = (e) => {
     const file = e.target.files[0];
@@ -45,20 +46,18 @@ function AddBookPage() {
 
     setSaving(true);
     try {
-      // Create book data object
       const bookData = {
         name: bookTitle,
         author: bookAuthor,
         description: bookDescription,
         category: selectedCategory,
         price: bookPrice ? parseFloat(bookPrice) : 0,
-        pdfUrl: `/books/${selectedFile.name}`,
         coverUrl: '',
-        size: selectedFile.size,
-        totalPages: 0, // TODO: Extract actual page count from PDF
+        totalPages: 0,
       };
 
-      await addBook(bookData);
+      // Pass the PDF file as second argument for Supabase Storage upload
+      await addBook(bookData, selectedFile);
       toast.success('Livre publié avec succès !');
       // Reset form
       setSelectedFile(null);

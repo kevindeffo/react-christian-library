@@ -89,21 +89,6 @@ function LoginPage() {
               </Button>
             </form>
 
-            <div className="text-center mt-6">
-              <p className="text-sm text-gray-500">
-                Pas encore de compte ?{' '}
-                <Link to={ROUTES.REGISTER} className="text-primary font-semibold hover:underline">
-                  S&apos;inscrire
-                </Link>
-              </p>
-            </div>
-
-            {/* Demo credentials */}
-            <div className="mt-6 p-4 bg-gray-50 rounded-xl">
-              <p className="text-sm font-semibold text-gray-600 mb-2">Comptes de démonstration :</p>
-              <p className="text-sm text-gray-500"><strong>Admin:</strong> admin@booklib.com / admin123</p>
-              <p className="text-sm text-gray-500"><strong>User:</strong> user@booklib.com / user123</p>
-            </div>
           </CardContent>
         </Card>
 

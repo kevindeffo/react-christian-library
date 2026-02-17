@@ -1,11 +1,9 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useRef } from 'react';
 import {
   login as loginService,
-  register as registerService,
   logout as logoutService,
   getCurrentUser,
-  isAuthenticated as checkAuth,
-  isAdmin as checkAdmin,
+  onAuthStateChange,
 } from '../services/authService';
 
 const AuthContext = createContext(null);
@@ -23,99 +21,95 @@ export const useAuth = () => {
 
 /**
  * Auth Provider Component
- * Manages authentication state globally
+ * Manages authentication state globally via Supabase.
+ * Uses onAuthStateChange as the single source of truth to avoid
+ * duplicate getCurrentUser() calls and login loops.
  */
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const initializedRef = useRef(false);
 
-  // Initialize auth state on mount
   useEffect(() => {
-    const initAuth = () => {
-      try {
-        const currentUser = getCurrentUser();
-        setUser(currentUser);
-      } catch (error) {
-        console.error('Error initializing auth:', error);
-        setUser(null);
-      } finally {
+    // onAuthStateChange fires INITIAL_SESSION on setup (synchronously after subscribe),
+    // then SIGNED_IN / SIGNED_OUT / TOKEN_REFRESHED for subsequent events.
+    // We use it as the single init mechanism — no separate initAuth() call.
+    const unsubscribe = onAuthStateChange(async (event, session) => {
+      console.log('[AUTH]', event, session?.user?.email || 'no user');
+      if (event === 'INITIAL_SESSION') {
+        // First load — read from local session (no network call)
+        if (session?.user) {
+          const currentUser = await getCurrentUser();
+          setUser(currentUser);
+        } else {
+          setUser(null);
+        }
         setLoading(false);
+        initializedRef.current = true;
+        return;
       }
-    };
 
-    initAuth();
+      // Ignore SIGNED_IN that fires right after INITIAL_SESSION for existing sessions
+      if (event === 'SIGNED_IN' && !initializedRef.current) return;
+
+      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+        const currentUser = await getCurrentUser();
+        setUser(currentUser);
+      } else if (event === 'SIGNED_OUT') {
+        setUser(null);
+      }
+    });
+
+    return () => unsubscribe();
   }, []);
 
   /**
    * Login user
-   * @param {string} email
-   * @param {string} password
-   * @returns {Promise<object>} User object
    */
   const login = async (email, password) => {
-    try {
-      const user = await loginService(email, password);
-      setUser(user);
-      return user;
-    } catch (error) {
-      throw error;
-    }
-  };
-
-  /**
-   * Register new user
-   * @param {object} userData
-   * @returns {Promise<object>} User object
-   */
-  const register = async (userData) => {
-    try {
-      const user = await registerService(userData);
-      setUser(user);
-      return user;
-    } catch (error) {
-      throw error;
-    }
+    const loggedInUser = await loginService(email, password);
+    setUser(loggedInUser);
+    return loggedInUser;
   };
 
   /**
    * Logout current user
    */
-  const logout = () => {
-    logoutService();
+  const logout = async () => {
+    await logoutService();
     setUser(null);
   };
 
   /**
    * Check if user is authenticated
-   * @returns {boolean}
    */
   const isAuthenticated = () => {
-    return checkAuth();
+    return user !== null;
   };
 
   /**
    * Check if current user is admin
-   * @returns {boolean}
    */
   const isAdmin = () => {
-    return checkAdmin();
+    return user?.role === 'admin';
   };
 
   /**
-   * Update user profile
-   * @param {object} updatedUser - Updated user data
+   * Update user in state after profile edit
    */
-  const updateUser = (updatedUser) => {
-    // Update in localStorage
-    localStorage.setItem('currentUser', JSON.stringify(updatedUser));
-    setUser(updatedUser);
+  const updateUser = async (updatedUser) => {
+    if (updatedUser?.id) {
+      setUser(updatedUser);
+    } else {
+      const currentUser = await getCurrentUser();
+      setUser(currentUser);
+    }
   };
 
   const value = {
     user,
     loading,
     login,
-    register,
     logout,
     isAuthenticated,
     isAdmin,

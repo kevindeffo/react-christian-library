@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { updateProfile, changePassword } from '../services/authService';
 import { ArrowLeft } from 'lucide-react';
 import { Card, CardContent } from '../components/ui/Card';
 import Input from '../components/ui/Input';
@@ -95,15 +96,16 @@ function EditProfilePage() {
     setLoading(true);
 
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 500));
-
-      // Update user info
-      const updatedUser = {
-        ...user,
+      // Update profile via Supabase
+      const updatedUser = await updateProfile({
         name: formData.name,
-        email: formData.email
-      };
+        email: formData.email,
+      });
+
+      // Handle password change if requested
+      if (formData.newPassword) {
+        await changePassword(formData.currentPassword, formData.newPassword);
+      }
 
       updateUser(updatedUser);
 

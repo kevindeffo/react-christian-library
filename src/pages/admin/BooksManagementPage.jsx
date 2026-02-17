@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getAllBooks, deleteBook } from '../../services/bookService';
-import categories from '../../config/categories.json';
+import { useCategories } from '../../hooks/useCategories';
 import AdminLayout from '../../components/layouts/AdminLayout';
 import { Card } from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
@@ -19,6 +19,7 @@ function BooksManagementPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [deleteDialog, setDeleteDialog] = useState({ open: false, bookId: null, bookName: '' });
   const navigate = useNavigate();
+  const { categories } = useCategories();
 
   useEffect(() => {
     loadBooks();

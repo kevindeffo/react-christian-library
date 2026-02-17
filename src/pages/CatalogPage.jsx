@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getAllBooks } from '../services/bookService';
-import categories from '../config/categories.json';
+import { useCategories } from '../hooks/useCategories';
 import { ArrowLeft, BookOpen, Loader2 } from 'lucide-react';
 import BookCard from '../components/shared/BookCard';
 import { cn } from '../lib/utils';
@@ -12,6 +12,7 @@ function CatalogPage() {
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const navigate = useNavigate();
+  const { categories } = useCategories();
 
   useEffect(() => {
     loadBooks();

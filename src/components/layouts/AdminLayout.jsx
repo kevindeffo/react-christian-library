@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { LayoutDashboard, BookOpen, PlusCircle, Tags, Home, Menu, X } from 'lucide-react';
+import { LayoutDashboard, BookOpen, PlusCircle, Tags, Users, Home, Menu, X } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
 const menuItems = [
@@ -8,6 +8,7 @@ const menuItems = [
   { path: '/admin/books', icon: BookOpen, label: 'Gestion des livres' },
   { path: '/admin/add-book', icon: PlusCircle, label: 'Ajouter un livre' },
   { path: '/admin/categories', icon: Tags, label: 'Catégories' },
+  { path: '/admin/users', icon: Users, label: 'Utilisateurs' },
 ];
 
 function AdminLayout({ children }) {

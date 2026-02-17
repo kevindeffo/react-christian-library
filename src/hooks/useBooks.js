@@ -1,17 +1,15 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
   getAllBooks,
-  addBookToLibrary,
+  addBook as addBookService,
   deleteBook,
-  updateBookProgress,
   getBookById,
-} from '../services/libraryService';
+} from '../services/bookService';
 import { STATUS, MESSAGES } from '../utils/constants';
 
 /**
  * Custom hook to manage books
- * Provides books data and CRUD operations
- * In the future, this will use API instead of IndexedDB
+ * Provides books data and CRUD operations via Supabase
  */
 export const useBooks = (autoLoad = true) => {
   const [books, setBooks] = useState([]);
@@ -21,7 +19,7 @@ export const useBooks = (autoLoad = true) => {
   const loading = status === STATUS.LOADING;
 
   /**
-   * Load all books from storage
+   * Load all books from Supabase
    */
   const loadBooks = useCallback(async () => {
     try {
@@ -41,18 +39,18 @@ export const useBooks = (autoLoad = true) => {
 
   /**
    * Add a new book
-   * @param {File} file - PDF file
-   * @param {string} category - Category ID
-   * @returns {Promise<number>} Book ID
+   * @param {object} bookData - Book metadata
+   * @param {File} pdfFile - PDF file to upload
+   * @returns {Promise<object>} Created book
    */
-  const addBook = useCallback(async (file, category) => {
+  const addBook = useCallback(async (bookData, pdfFile) => {
     try {
       setStatus(STATUS.LOADING);
       setError(null);
-      const bookId = await addBookToLibrary(file, category);
+      const newBook = await addBookService(bookData, pdfFile);
       await loadBooks(); // Reload books after adding
       setStatus(STATUS.SUCCESS);
-      return bookId;
+      return newBook;
     } catch (err) {
       console.error('Error adding book:', err);
       setError(MESSAGES.BOOK_ADD_ERROR);
@@ -63,7 +61,7 @@ export const useBooks = (autoLoad = true) => {
 
   /**
    * Delete a book
-   * @param {number} bookId - Book ID
+   * @param {string} bookId - Book UUID
    */
   const removeBook = useCallback(async (bookId) => {
     try {
@@ -81,31 +79,8 @@ export const useBooks = (autoLoad = true) => {
   }, [loadBooks]);
 
   /**
-   * Update book reading progress
-   * @param {number} bookId - Book ID
-   * @param {number} currentPage - Current page number
-   */
-  const updateProgress = useCallback(async (bookId, currentPage) => {
-    try {
-      await updateBookProgress(bookId, currentPage);
-      // Update local state without full reload
-      setBooks(prevBooks =>
-        prevBooks.map(book =>
-          book.id === bookId
-            ? { ...book, currentPage, lastRead: new Date().toISOString() }
-            : book
-        )
-      );
-    } catch (err) {
-      console.error('Error updating progress:', err);
-      setError(MESSAGES.BOOK_UPDATED_ERROR);
-      throw err;
-    }
-  }, []);
-
-  /**
    * Get a single book by ID
-   * @param {number} bookId - Book ID
+   * @param {string} bookId - Book UUID
    * @returns {Promise<object>} Book object
    */
   const getBook = useCallback(async (bookId) => {
@@ -118,7 +93,7 @@ export const useBooks = (autoLoad = true) => {
   }, []);
 
   /**
-   * Filter books by category
+   * Filter books by category (client-side)
    * @param {string} categoryId - Category ID ('all' for all books)
    * @returns {array} Filtered books
    */
@@ -128,7 +103,7 @@ export const useBooks = (autoLoad = true) => {
   }, [books]);
 
   /**
-   * Search books by query
+   * Search books by query (client-side)
    * @param {string} query - Search query
    * @returns {array} Filtered books
    */
@@ -186,7 +161,6 @@ export const useBooks = (autoLoad = true) => {
     loadBooks,
     addBook,
     removeBook,
-    updateProgress,
     getBook,
     filterByCategory,
     searchBooks,

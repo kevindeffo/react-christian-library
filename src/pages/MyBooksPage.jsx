@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { getUserReadingProgress, getReadingStats } from '../services/readingProgressService';
-import { getAllBooks } from '../services/bookService';
-import { ArrowLeft, BookOpen, BookMarked, CheckCircle2, BarChart3, Loader2 } from 'lucide-react';
+import { getUserAccessibleBooks } from '../services/bookAccessService';
+import { getUserReadingProgress } from '../services/readingProgressService';
+import { getPdfUrl } from '../services/bookService';
+import { ArrowLeft, BookOpen, BookMarked, CheckCircle2, Loader2, Clock, Infinity } from 'lucide-react';
 import { Card } from '../components/ui/Card';
 import Button from '../components/ui/Button';
 
@@ -11,7 +12,6 @@ function MyBooksPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [userBooks, setUserBooks] = useState([]);
-  const [stats, setStats] = useState(null);
   const [filter, setFilter] = useState('all'); // all, reading, completed
   const [loading, setLoading] = useState(true);
 
@@ -27,24 +27,22 @@ function MyBooksPage() {
   const loadUserBooks = async () => {
     setLoading(true);
     try {
+      // Get books user has access to
+      const accessibleBooks = await getUserAccessibleBooks(user.id);
+
       // Get user's reading progress
-      const progress = getUserReadingProgress(user.id);
-      const readingStats = getReadingStats(user.id);
+      const progress = await getUserReadingProgress(user.id);
 
-      // Get all books
-      const allBooks = await getAllBooks();
-
-      // Match progress with books
-      const booksWithProgress = progress.map(p => {
-        const book = allBooks.find(b => b.id === p.bookId);
+      // Merge access with progress
+      const booksWithProgress = accessibleBooks.map(book => {
+        const bookProgress = progress.find(p => p.bookId === book.id);
         return {
           ...book,
-          progress: p
+          progress: bookProgress || null,
         };
-      }).filter(b => b.id); // Remove books that don't exist anymore
+      });
 
       setUserBooks(booksWithProgress);
-      setStats(readingStats);
     } catch (error) {
       console.error('Error loading user books:', error);
     } finally {
@@ -55,15 +53,19 @@ function MyBooksPage() {
   const getFilteredBooks = () => {
     switch (filter) {
       case 'reading':
-        return userBooks.filter(b => b.progress.progress > 0 && b.progress.progress < 100);
+        return userBooks.filter(b => b.progress && b.progress.progress > 0 && b.progress.progress < 100);
       case 'completed':
-        return userBooks.filter(b => b.progress.progress === 100);
+        return userBooks.filter(b => b.progress && b.progress.progress >= 100);
       default:
         return userBooks;
     }
   };
 
+  const readingCount = userBooks.filter(b => b.progress && b.progress.progress > 0 && b.progress.progress < 100).length;
+  const completedCount = userBooks.filter(b => b.progress && b.progress.progress >= 100).length;
+
   const formatDate = (dateString) => {
+    if (!dateString) return '';
     const date = new Date(dateString);
     return date.toLocaleDateString('fr-FR', {
       day: 'numeric',
@@ -72,14 +74,19 @@ function MyBooksPage() {
     });
   };
 
-  const handleReadBook = (book) => {
-    navigate('/reader', {
-      state: {
-        file: book.file,
-        fileName: book.title,
-        bookId: book.id
-      }
-    });
+  const handleReadBook = async (book) => {
+    try {
+      const pdfSignedUrl = await getPdfUrl(book.pdf_url || book.pdfUrl);
+      navigate('/reader', {
+        state: {
+          pdfUrl: pdfSignedUrl,
+          fileName: book.name,
+          bookId: book.id
+        }
+      });
+    } catch (error) {
+      console.error('Error getting PDF URL:', error);
+    }
   };
 
   const filteredBooks = getFilteredBooks();
@@ -105,54 +112,41 @@ function MyBooksPage() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Statistics Cards */}
-        {stats && (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-            <Card className="p-5">
-              <div className="flex flex-col items-center text-center">
-                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-3">
-                  <BookOpen className="w-6 h-6 text-primary" />
-                </div>
-                <h3 className="text-2xl font-bold text-primary mb-1">
-                  {stats.totalBooks}
-                </h3>
-                <p className="text-gray-500 text-sm">Total de livres</p>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
+          <Card className="p-5">
+            <div className="flex flex-col items-center text-center">
+              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-3">
+                <BookOpen className="w-6 h-6 text-primary" />
               </div>
-            </Card>
-            <Card className="p-5">
-              <div className="flex flex-col items-center text-center">
-                <div className="w-12 h-12 rounded-full bg-warning/10 flex items-center justify-center mb-3">
-                  <BookMarked className="w-6 h-6 text-warning" />
-                </div>
-                <h3 className="text-2xl font-bold text-warning mb-1">
-                  {stats.inProgressBooks}
-                </h3>
-                <p className="text-gray-500 text-sm">En cours</p>
+              <h3 className="text-2xl font-bold text-primary mb-1">
+                {userBooks.length}
+              </h3>
+              <p className="text-gray-500 text-sm">Livres accessibles</p>
+            </div>
+          </Card>
+          <Card className="p-5">
+            <div className="flex flex-col items-center text-center">
+              <div className="w-12 h-12 rounded-full bg-warning/10 flex items-center justify-center mb-3">
+                <BookMarked className="w-6 h-6 text-warning" />
               </div>
-            </Card>
-            <Card className="p-5">
-              <div className="flex flex-col items-center text-center">
-                <div className="w-12 h-12 rounded-full bg-success/10 flex items-center justify-center mb-3">
-                  <CheckCircle2 className="w-6 h-6 text-success" />
-                </div>
-                <h3 className="text-2xl font-bold text-success mb-1">
-                  {stats.completedBooks}
-                </h3>
-                <p className="text-gray-500 text-sm">Terminés</p>
+              <h3 className="text-2xl font-bold text-warning mb-1">
+                {readingCount}
+              </h3>
+              <p className="text-gray-500 text-sm">En cours</p>
+            </div>
+          </Card>
+          <Card className="p-5">
+            <div className="flex flex-col items-center text-center">
+              <div className="w-12 h-12 rounded-full bg-success/10 flex items-center justify-center mb-3">
+                <CheckCircle2 className="w-6 h-6 text-success" />
               </div>
-            </Card>
-            <Card className="p-5">
-              <div className="flex flex-col items-center text-center">
-                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-3">
-                  <BarChart3 className="w-6 h-6 text-primary" />
-                </div>
-                <h3 className="text-2xl font-bold text-primary mb-1">
-                  {stats.averageProgress}%
-                </h3>
-                <p className="text-gray-500 text-sm">Progression moyenne</p>
-              </div>
-            </Card>
-          </div>
-        )}
+              <h3 className="text-2xl font-bold text-success mb-1">
+                {completedCount}
+              </h3>
+              <p className="text-gray-500 text-sm">Terminés</p>
+            </div>
+          </Card>
+        </div>
 
         {/* Filter Buttons */}
         <div className="flex flex-wrap gap-2 mb-6">
@@ -174,7 +168,7 @@ function MyBooksPage() {
             }`}
             onClick={() => setFilter('reading')}
           >
-            En cours ({stats?.inProgressBooks || 0})
+            En cours ({readingCount})
           </button>
           <button
             className={`px-4 py-2 rounded-full text-sm font-semibold transition-colors ${
@@ -184,7 +178,7 @@ function MyBooksPage() {
             }`}
             onClick={() => setFilter('completed')}
           >
-            Terminés ({stats?.completedBooks || 0})
+            Terminés ({completedCount})
           </button>
         </div>
 
@@ -215,9 +209,9 @@ function MyBooksPage() {
                 <div className="p-5">
                   <div className="flex justify-between items-start mb-3">
                     <h5 className="text-gray-800 font-semibold text-base leading-tight">
-                      {book.title}
+                      {book.name}
                     </h5>
-                    {book.progress.progress === 100 && (
+                    {book.progress?.progress >= 100 && (
                       <CheckCircle2 className="w-6 h-6 text-success flex-shrink-0 ml-2" />
                     )}
                   </div>
@@ -226,37 +220,50 @@ function MyBooksPage() {
                     <span className="font-semibold">Auteur:</span> {book.author}
                   </p>
 
-                  {/* Progress Bar */}
+                  {/* Access Info */}
                   <div className="mb-3">
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="text-gray-500 text-sm">Progression</span>
-                      <span className="text-primary font-bold text-sm">
-                        {book.progress.progress}%
+                    {book.access?.expiresAt ? (
+                      <span className="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-lg bg-amber-100 text-amber-700">
+                        <Clock className="h-3 w-3" />
+                        Expire le {formatDate(book.access.expiresAt)}
                       </span>
-                    </div>
-                    <div className="h-2 rounded-full bg-gray-200">
-                      <div
-                        className={`h-2 rounded-full transition-all duration-300 ${
-                          book.progress.progress === 100 ? 'bg-success' : 'bg-primary'
-                        }`}
-                        style={{ width: `${book.progress.progress}%` }}
-                      />
-                    </div>
-                    <span className="text-gray-500 text-xs mt-1 block">
-                      Page {book.progress.currentPage} sur {book.progress.totalPages}
-                    </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-700">
+                        <Infinity className="h-3 w-3" />
+                        Accès illimité
+                      </span>
+                    )}
                   </div>
 
-                  <p className="text-gray-500 text-sm mb-4">
-                    <span className="font-semibold">Dernière lecture:</span> {formatDate(book.progress.lastReadAt)}
-                  </p>
+                  {/* Progress Bar */}
+                  {book.progress && (
+                    <div className="mb-3">
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-gray-500 text-sm">Progression</span>
+                        <span className="text-primary font-bold text-sm">
+                          {book.progress.progress}%
+                        </span>
+                      </div>
+                      <div className="h-2 rounded-full bg-gray-200">
+                        <div
+                          className={`h-2 rounded-full transition-all duration-300 ${
+                            book.progress.progress >= 100 ? 'bg-success' : 'bg-primary'
+                          }`}
+                          style={{ width: `${book.progress.progress}%` }}
+                        />
+                      </div>
+                      <span className="text-gray-500 text-xs mt-1 block">
+                        Page {book.progress.currentPage} sur {book.progress.totalPages}
+                      </span>
+                    </div>
+                  )}
 
                   <Button
                     fullWidth
                     className="rounded-full"
                     onClick={() => handleReadBook(book)}
                   >
-                    {book.progress.progress === 100 ? 'Relire' : 'Continuer la lecture'}
+                    {book.progress?.progress >= 100 ? 'Relire' : book.progress ? 'Continuer la lecture' : 'Commencer la lecture'}
                   </Button>
                 </div>
               </Card>

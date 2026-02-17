@@ -20,8 +20,8 @@ function ProfilePage() {
     loadStats();
   }, [user, navigate]);
 
-  const loadStats = () => {
-    const readingStats = getReadingStats(user.id);
+  const loadStats = async () => {
+    const readingStats = await getReadingStats(user.id);
     setStats(readingStats);
   };
 

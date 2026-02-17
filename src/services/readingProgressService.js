@@ -1,136 +1,150 @@
 /**
  * Reading Progress Service
- * Manages user reading progress per book
- * TODO: Replace with API calls when backend is ready
+ * Manages user reading progress with Supabase Database
  */
 
-import readingProgressData from '../config/readingProgress.json';
-
-const PROGRESS_STORAGE_KEY = 'reading_progress';
+import { supabase } from '../lib/supabase';
 
 /**
- * Initialize reading progress in localStorage from JSON
+ * Map snake_case DB row to camelCase
  */
-const initializeProgress = () => {
-  const existingProgress = localStorage.getItem(PROGRESS_STORAGE_KEY);
-  if (!existingProgress) {
-    localStorage.setItem(PROGRESS_STORAGE_KEY, JSON.stringify(readingProgressData));
-  }
-};
-
-/**
- * Get all reading progress
- * @returns {Array} Reading progress array
- */
-const getAllProgress = () => {
-  initializeProgress();
-  const progress = localStorage.getItem(PROGRESS_STORAGE_KEY);
-  return progress ? JSON.parse(progress) : [];
-};
-
-/**
- * Save all reading progress
- * @param {Array} progressArray - Progress array
- */
-const saveAllProgress = (progressArray) => {
-  localStorage.setItem(PROGRESS_STORAGE_KEY, JSON.stringify(progressArray));
-};
+const mapProgress = (row) => ({
+  id: row.id,
+  userId: row.user_id,
+  bookId: row.book_id,
+  currentPage: row.current_page,
+  totalPages: row.total_pages,
+  progress: row.progress,
+  lastReadAt: row.last_read_at,
+});
 
 /**
  * Get reading progress for a specific user and book
- * @param {number} userId - User ID
- * @param {number} bookId - Book ID
- * @returns {object|null} Reading progress or null
+ * @param {string} userId - User UUID
+ * @param {string} bookId - Book UUID
+ * @returns {Promise<object|null>} Reading progress or null
  */
-export const getReadingProgress = (userId, bookId) => {
-  const allProgress = getAllProgress();
-  return allProgress.find(p => p.userId === userId && p.bookId === bookId) || null;
+export const getReadingProgress = async (userId, bookId) => {
+  const { data, error } = await supabase
+    .from('reading_progress')
+    .select('*')
+    .eq('user_id', userId)
+    .eq('book_id', bookId)
+    .single();
+
+  if (error) {
+    if (error.code === 'PGRST116') return null; // Not found
+    console.error('Error fetching reading progress:', error);
+    return null;
+  }
+
+  return mapProgress(data);
 };
 
 /**
  * Save or update reading progress
- * @param {number} userId - User ID
- * @param {number} bookId - Book ID
+ * @param {string} userId - User UUID
+ * @param {string} bookId - Book UUID
  * @param {number} currentPage - Current page number
- * @param {number} totalPages - Total pages (optional)
- * @returns {object} Updated progress
+ * @param {number} totalPages - Total pages
+ * @returns {Promise<object>} Updated progress
  */
 export const saveReadingProgress = async (userId, bookId, currentPage, totalPages = null) => {
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 100));
-
-  const allProgress = getAllProgress();
-  const existingIndex = allProgress.findIndex(
-    p => p.userId === userId && p.bookId === bookId
-  );
-
-  const progress = {
-    userId,
-    bookId,
-    currentPage,
-    totalPages: totalPages || (existingIndex !== -1 ? allProgress[existingIndex].totalPages : null),
-    lastReadAt: new Date().toISOString(),
-    progress: totalPages ? Math.round((currentPage / totalPages) * 100) : 0
+  const upsertData = {
+    user_id: userId,
+    book_id: bookId,
+    current_page: currentPage,
+    last_read_at: new Date().toISOString(),
   };
 
-  if (existingIndex !== -1) {
-    // Update existing progress
-    allProgress[existingIndex] = progress;
-  } else {
-    // Create new progress entry
-    allProgress.push(progress);
+  if (totalPages !== null) {
+    upsertData.total_pages = totalPages;
   }
 
-  saveAllProgress(allProgress);
-  return progress;
+  const { data, error } = await supabase
+    .from('reading_progress')
+    .upsert(upsertData, { onConflict: 'user_id,book_id' })
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error saving reading progress:', error);
+    throw error;
+  }
+
+  return mapProgress(data);
 };
 
 /**
  * Get all reading progress for a user
- * @param {number} userId - User ID
- * @returns {Array} Array of reading progress
+ * @param {string} userId - User UUID
+ * @returns {Promise<Array>} Array of reading progress
  */
-export const getUserReadingProgress = (userId) => {
-  const allProgress = getAllProgress();
-  return allProgress.filter(p => p.userId === userId);
+export const getUserReadingProgress = async (userId) => {
+  const { data, error } = await supabase
+    .from('reading_progress')
+    .select('*')
+    .eq('user_id', userId)
+    .order('last_read_at', { ascending: false });
+
+  if (error) {
+    console.error('Error fetching user reading progress:', error);
+    return [];
+  }
+
+  return (data || []).map(mapProgress);
 };
 
 /**
  * Get recently read books for a user
- * @param {number} userId - User ID
+ * @param {string} userId - User UUID
  * @param {number} limit - Number of books to return
- * @returns {Array} Array of reading progress sorted by last read
+ * @returns {Promise<Array>} Array of reading progress sorted by last read
  */
-export const getRecentlyReadBooks = (userId, limit = 5) => {
-  const userProgress = getUserReadingProgress(userId);
-  return userProgress
-    .sort((a, b) => new Date(b.lastReadAt) - new Date(a.lastReadAt))
-    .slice(0, limit);
+export const getRecentlyReadBooks = async (userId, limit = 5) => {
+  const { data, error } = await supabase
+    .from('reading_progress')
+    .select('*')
+    .eq('user_id', userId)
+    .order('last_read_at', { ascending: false })
+    .limit(limit);
+
+  if (error) {
+    console.error('Error fetching recently read books:', error);
+    return [];
+  }
+
+  return (data || []).map(mapProgress);
 };
 
 /**
  * Delete reading progress
- * @param {number} userId - User ID
- * @param {number} bookId - Book ID
+ * @param {string} userId - User UUID
+ * @param {string} bookId - Book UUID
  */
-export const deleteReadingProgress = (userId, bookId) => {
-  const allProgress = getAllProgress();
-  const filtered = allProgress.filter(
-    p => !(p.userId === userId && p.bookId === bookId)
-  );
-  saveAllProgress(filtered);
+export const deleteReadingProgress = async (userId, bookId) => {
+  const { error } = await supabase
+    .from('reading_progress')
+    .delete()
+    .eq('user_id', userId)
+    .eq('book_id', bookId);
+
+  if (error) {
+    console.error('Error deleting reading progress:', error);
+    throw error;
+  }
 };
 
 /**
  * Get reading statistics for a user
- * @param {number} userId - User ID
- * @returns {object} Reading statistics
+ * @param {string} userId - User UUID
+ * @returns {Promise<object>} Reading statistics
  */
-export const getReadingStats = (userId) => {
-  const userProgress = getUserReadingProgress(userId);
+export const getReadingStats = async (userId) => {
+  const userProgress = await getUserReadingProgress(userId);
 
   const totalBooks = userProgress.length;
-  const completedBooks = userProgress.filter(p => p.progress === 100).length;
+  const completedBooks = userProgress.filter(p => p.progress >= 100).length;
   const inProgressBooks = userProgress.filter(p => p.progress > 0 && p.progress < 100).length;
   const averageProgress = totalBooks > 0
     ? Math.round(userProgress.reduce((sum, p) => sum + p.progress, 0) / totalBooks)
@@ -141,9 +155,7 @@ export const getReadingStats = (userId) => {
     completedBooks,
     inProgressBooks,
     averageProgress,
-    lastRead: userProgress.length > 0
-      ? userProgress.sort((a, b) => new Date(b.lastReadAt) - new Date(a.lastReadAt))[0].lastReadAt
-      : null
+    lastRead: userProgress.length > 0 ? userProgress[0].lastReadAt : null,
   };
 };
 
